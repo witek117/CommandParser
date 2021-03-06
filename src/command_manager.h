@@ -80,7 +80,7 @@ private:
     void(*enable_interrupts)() = nullptr;
     void(*disable_interrupts)() = nullptr;
 
-    static const uint8_t maxCommandsCount = 10;
+    static const uint8_t maxCommandsCount = size;
     Command *commands[maxCommandsCount] = {0};
 
     uint8_t command_title_len = 0;
