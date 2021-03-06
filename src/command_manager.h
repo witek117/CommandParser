@@ -57,8 +57,7 @@ public:
 
 class ReadManager {
 public:
-    constexpr static size_t buff_size = 50;
-    CyclicBuffer_data<char, buff_size> buffer_rx;
+    CyclicBuffer_data<char, 50> buffer_rx;
     uint8_t commands_in_buffer = 0;
 
     void putToBuffer(char c) {
@@ -68,8 +67,8 @@ public:
         }
     }
     void init();
-    static bool isEnabled();
-    static void putChar(uint8_t);
+    bool isEnabled();
+    void putChar(uint8_t);
 };
 
 template <int size>
@@ -123,7 +122,9 @@ public:
         }
 
         for(uint8_t i = 0; i < commandsCount; i++) {
-            commands[i]->parse(data, command_title_len);
+            if(commands[i]->parse(data, command_title_len)) {
+                return;
+            }
         }
         print("undefined\n");
     }

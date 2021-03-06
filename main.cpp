@@ -56,6 +56,7 @@ void print_function(uint8_t c) {
 }
 
 TEST (COMMAND_MANAGER, basic) {
+    printedString = "";
     CommandBaseMock jeden("jeden");
     CommandBaseMock dwa("dwa");
 
@@ -76,6 +77,8 @@ TEST (COMMAND_MANAGER, basic) {
     EXPECT_CALL(dwa, callback(::testing::_));
 
     command_manager.run();
+
+    EXPECT_EQ(printedString, std::string(""));
 }
 
 char data_table[3][100];
@@ -87,6 +90,7 @@ void callback1(const char* data) {
 }
 
 TEST (COMMAND_MANAGER, multi_commands) {
+    printedString = "";
     Command jeden("jeden", callback1);
     Command dwa("dwa", callback1);
 
@@ -106,6 +110,7 @@ TEST (COMMAND_MANAGER, multi_commands) {
 
     EXPECT_EQ(std::string("sdfg"), std::string(data_table[0]));
     EXPECT_EQ(std::string("2345"), std::string(data_table[1]));
+    EXPECT_EQ(printedString, std::string(""));
 }
 
 float ff1, ff2;
@@ -117,6 +122,7 @@ void two_floats(const char* data) {
 }
 
 TEST(COMMAND_MANAGER, two_floats) {
+    printedString = "";
     Command floats("floats", two_floats);
 
     CommandManager<1> command_manager(&enable_interrupts, &disable_interrupts, &print_function);
@@ -134,6 +140,7 @@ TEST(COMMAND_MANAGER, two_floats) {
 
     EXPECT_EQ(ff1, (float)(2.456));
     EXPECT_EQ(ff2, (float)(3.654));
+    EXPECT_EQ(printedString, std::string(""));
 }
 
 int functionNUmber = 0;
@@ -172,7 +179,6 @@ TEST(COMMAND_MANAGER, question) {
 
     command_manager.init();
 
-
     const char * data1 = "t 1\n";
     for (size_t i =0; i < strlen(data1); i++) {
         command_manager.reader.putChar(data1[i]);
@@ -196,7 +202,7 @@ TEST(COMMAND_MANAGER, undefined) {
     printedString = "";
     command_manager.run();
 
-    ASSERT_STREQ(printedString.c_str(), "");
+    EXPECT_EQ(printedString, std::string(""));
 
     Command q4("n", question4);
     command_manager.addCommand(&q4);
@@ -207,5 +213,5 @@ TEST(COMMAND_MANAGER, undefined) {
     }
     printedString = "";
     command_manager.run();
-    ASSERT_STREQ(printedString.c_str(), "undefined\n");
+    EXPECT_EQ(printedString, std::string("undefined\n"));
 }
