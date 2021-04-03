@@ -52,7 +52,9 @@ public:
         }
     }
 
-    void init();
+    virtual void init() {
+
+    }
 };
 
 class ReadManager {
@@ -60,21 +62,23 @@ public:
     CyclicBuffer_data<char, 50> buffer_rx;
     uint8_t commands_in_buffer = 0;
 
-    void putToBuffer(char c) {
+    void putChar(char c) {
         buffer_rx.append(c);
         if (c == endChar) {
             commands_in_buffer++;
         }
     }
-    void init();
-    bool isEnabled();
-    void putChar(uint8_t);
+
+    bool isEnabled() {
+        return true;
+    }
 };
 
 template <int size>
 class CommandManager : public PrintManager{
 public:
     ReadManager reader;
+//    ReadManager reader;
 private:
     void(*enable_interrupts)() = nullptr;
     void(*disable_interrupts)() = nullptr;
@@ -90,7 +94,7 @@ public:
     }
 
     void init() {
-        reader.init();
+//        reader.init();
 //        printer.init();
     }
 
