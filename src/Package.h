@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+#include <cstring>
 
 class Package {
     uint8_t length = 0;
@@ -61,7 +63,6 @@ public:
                     crcIndex = 1;
                 } else if (crcIndex == 1) {
                     receivedCrc |= c;
-
                     uint16_t myCrc = 0xffff;
                     for (uint8_t i = 0; i < length; i++) {
                         myCrc = updateCRC(rxBuffer[i], myCrc);
@@ -97,5 +98,4 @@ public:
         txPackageLength = offset + 2;
         return txPackageLength;
     }
-
 };
