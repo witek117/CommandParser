@@ -69,7 +69,7 @@ protected:
     uint8_t commandsCount = 0;
 public:
     explicit CommandManager(void(*enableInterrupts)(), void(*disableInterrupts)(), void(*printFunction_m)(uint8_t) ) :
-        enableInterrupts(enableInterrupts), disableInterrupts(disableInterrupts), printFunction(printFunction_m) {
+            printFunction(printFunction_m), enableInterrupts(enableInterrupts), disableInterrupts(disableInterrupts) {
     }
 
     inline void printData(const char *s, uint8_t length) override {
