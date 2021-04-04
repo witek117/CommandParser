@@ -12,12 +12,11 @@ public:
     explicit CommandBaseMock(const char* name) : Command(name, ([this](const char* ch) {this->callback(ch);})) { }
 };
 
-void enable_interrupts() {}
+static void enable_interrupts() {}
+static void disable_interrupts() {}
 
-void disable_interrupts() {}
-
-std::string printedString;
-void print_function(uint8_t c) {
+static std::string printedString;
+static void print_function(uint8_t c) {
     printedString += c;
 }
 

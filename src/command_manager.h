@@ -4,62 +4,45 @@
 #include <functional>
 #include <utility>
 #include "Command.h"
+#include "Package.h"
 
 constexpr char endChar = '\n';
 
 class PrintManager {
 protected:
-    void (*print_function)(uint8_t) = nullptr;
-
     char buff[10] = {0};
 public:
-    explicit PrintManager(void (*print_function)(uint8_t)) : print_function(print_function) { }
+    virtual void print(const char *s, uint8_t length) = 0;
 
-    size_t print(const char *s) {
-        size_t size = 0;
-        char c;
-        while ((c = *s) != '\0') {
-            print(c);
-            s++;
-            size++;
-        }
-        return size;
+protected:
+    size_t print_s(const char s[]) {
+        size_t length = strlen(s);
+        print(s, length);
+        return length;
     }
 
+public:
     void print(uint16_t value) {
-        sprintf(buff, "%d", value);
-        print(buff);
+        print(buff, sprintf(buff, "%d", value));
     }
 
     void print(uint32_t value) {
-        sprintf(buff, "%lu", value);
-        print(buff);
+        print(buff, sprintf(buff, "%lu", value));
     }
 
     void print(int16_t value) {
-        sprintf(buff, "%d", value);
-        print(buff);
+
+        print(buff, sprintf(buff, "%d", value));
     }
 
     void print(float value) {
-        sprintf(buff, "%.2f", value);
-        print(buff);
-    }
-
-    void print(char c) {
-        if (print_function) {
-            print_function(c);
-        }
-    }
-
-    virtual void init() {
-
+        print(buff, sprintf(buff, "%.2f", value));
     }
 };
 
 class ReadManager {
 public:
-    CyclicBuffer_data<char, 50> buffer_rx;
+    CyclicBuffer_data<uint8_t , 50> buffer_rx;
     uint8_t commands_in_buffer = 0;
 
     void putChar(char c) {
@@ -68,20 +51,19 @@ public:
             commands_in_buffer++;
         }
     }
-
-    bool isEnabled() {
-        return true;
-    }
 };
 
 template <int size>
-class CommandManager : public PrintManager{
+class CommandManager : public PrintManager {
 public:
+    void(*print_function)(uint8_t) = nullptr;
     ReadManager reader;
 //    ReadManager reader;
-private:
+protected:
     void(*enable_interrupts)() = nullptr;
     void(*disable_interrupts)() = nullptr;
+
+
 
     static const uint8_t maxCommandsCount = size;
     Command *commands[maxCommandsCount] = {0};
@@ -89,20 +71,23 @@ private:
     uint8_t command_title_len = 0;
     uint8_t commandsCount = 0;
 public:
-    explicit CommandManager(void(*enable_interrupts)(), void(*disable_interrupts)(), void(*print_function)(uint8_t) ) :
-            PrintManager(print_function), enable_interrupts(enable_interrupts), disable_interrupts(disable_interrupts) {
+    explicit CommandManager(void(*enable_interrupts)(), void(*disable_interrupts)(), void(*print_function_m)(uint8_t) ) :
+            enable_interrupts(enable_interrupts), disable_interrupts(disable_interrupts), print_function(print_function_m) {
     }
 
-    void init() {
-//        reader.init();
-//        printer.init();
+    inline void print(const char *s, uint8_t length) override {
+        for(uint8_t i = 0; i < length; i++) {
+            print_function(s[i]);
+        }
     }
+
+    inline void print(const char s[]){
+        print_s(s);
+    }
+
+    void init() {}
 
     bool run() {
-        if (!reader.isEnabled()) {
-            return false;
-        }
-
         disable_interrupts();
         uint8_t commands_in_fifo_local = reader.commands_in_buffer;
         reader.commands_in_buffer = 0;
@@ -155,5 +140,28 @@ public:
             commandsCount++;
         }
     }
+};
+
+template <int size>
+class PackageAndCommandManager : public Package, public CommandManager<size> {
+public:
+    PackageAndCommandManager(void(*enable_interrupts)(), void(*disable_interrupts)(), void(*print_function_m)(uint8_t)) :
+        CommandManager<size>(enable_interrupts, disable_interrupts, print_function_m) {
+    }
+
+    void useValidData() override {
+        for (uint8_t i = 0 ; i < length; i++) {
+            CommandManager<size>::reader.putChar(packageRxBuffer[i]);
+        }
+    }
+
+    void print(const char *s, uint8_t length) override {
+        uint8_t packetLength = createPackage((char*)s, length);
+
+        for(uint8_t i = 0; i < packetLength; i++) {
+            CommandManager<size>::print_function((uint8_t)packageTxBuffer[i]);
+        }
+    }
+
 };
 
