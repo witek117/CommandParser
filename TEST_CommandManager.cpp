@@ -180,3 +180,36 @@ TEST(COMMAND_MANAGER, undefined) {
     command_manager.run();
     EXPECT_EQ(printedString, std::string("undefined\n"));
 }
+
+TEST(COMMAND_MANAGER, print) {
+    CommandManager<1> command_manager(&enable_interrupts, &disable_interrupts, &print_function);
+    command_manager.init();
+
+    printedString = "";
+    command_manager.print((uint16_t)123);
+    EXPECT_EQ(printedString, std::string("123"));
+
+    printedString = "";
+    command_manager.print((uint32_t)123);
+    EXPECT_EQ(printedString, std::string("123"));
+
+    printedString = "";
+    command_manager.print((int16_t)123);
+    EXPECT_EQ(printedString, std::string("123"));
+
+    printedString = "";
+    command_manager.print((float)123);
+    EXPECT_EQ(printedString, std::string("123.00"));
+
+    printedString = "";
+    command_manager.print("123");
+    EXPECT_EQ(printedString, std::string("123"));
+
+    printedString = "";
+    command_manager.print("123", 3);
+    EXPECT_EQ(printedString, std::string("123"));
+
+    printedString = "";
+    command_manager.print("123", 2);
+    EXPECT_EQ(printedString, std::string("12"));
+}
