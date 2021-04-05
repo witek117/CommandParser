@@ -120,3 +120,20 @@ TEST(PACKAGE_AND_COMMAND, undefined) {
     command_manager.run();
     EXPECT_EQ(printedString, std::string("\xC8\nundefined\nH\t"));
 }
+
+TEST(PACKAGE_AND_COMMAND, without_crc) {
+    PackageAndCommandManager<2> command_manager(&enable_interrupts, &disable_interrupts, &print_function);
+    command_manager.addCommand(&one);
+    command_manager.addCommand(&two);
+
+    command_manager.init();
+
+    uint8_t myText[] = "one\n";
+
+    for(uint8_t i = 0; i < sizeof(myText); i++) {
+        command_manager.putChar(myText[i]);
+    }
+    printedString = "";
+    command_manager.run();
+    EXPECT_EQ(printedString, std::string(""));
+}

@@ -26,7 +26,7 @@ public:
     uint8_t packageRxBuffer[100] = {0};
     uint8_t packageTxBuffer[100] = {0};
 
-    uint8_t getLength() {
+    uint8_t getLength() const {
         return length;
     }
 

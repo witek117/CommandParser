@@ -1,33 +1,10 @@
 #pragma once
 
-#include <functional>
 #include <utility>
 #include <tuple>
 #include <array>
 #include <cstring>
 #include <string_view>
-
-class Command {
-    const char * name;
-    size_t  name_len = 0;
-public:
-    std::function<void(const char*)> callback_handler;
-
-public:
-    Command(const char* name, std::function<void(const char*)> callback_handler ) : name(name), name_len(strlen(name)), callback_handler(std::move(callback_handler)) { }
-
-    bool parse(char * data, size_t data_len) {
-        if (data_len != name_len) {
-            return false;
-        }
-
-        if (memcmp(data, name, name_len) == 0) {
-            callback_handler((char *)data + name_len + 1);
-            return true;
-        }
-        return false;
-    }
-};
 
 namespace parser {
     template<class T> T parse(std::string_view s);
@@ -66,3 +43,66 @@ namespace parser {
         return return_data;
     }
 }
+
+class CommandTemplate {
+    const char * name;
+    size_t  name_len = 0;
+public:
+    virtual void callback_handler(const char* data) = 0;
+public:
+    explicit CommandTemplate(const char* name) : name(name), name_len(strlen(name)){ }
+
+    bool parse(char * data, size_t data_len) {
+        if (data_len != name_len) {
+            return false;
+        }
+
+        if (memcmp(data, name, name_len) == 0) {
+            callback_handler((char *)data + name_len + 1);
+            return true;
+        }
+        return false;
+    }
+};
+
+class Command : public CommandTemplate{
+    void (*handler)(const char* data) = nullptr;
+    inline void callback_handler(const char* data) override {
+        handler(data);
+    }
+public:
+    Command(const char* name, void (*handler)(const char* data)) : CommandTemplate(name), handler(handler) { }
+};
+
+template<typename T0>
+class Command_T1 : public CommandTemplate{
+    void (*handler)(T0) = nullptr;
+    inline void callback_handler(const char* data) override {
+        auto [t0, t1] = parser::parse<T0>(data);
+        handler(t0, t1);
+    }
+public:
+    Command_T1(const char* name, void (*handler)(T0)) : CommandTemplate(name), handler(handler) { }
+};
+
+template<typename T0, typename T1>
+class Command_T2 : public CommandTemplate{
+    void (*handler)(T0, T1) = nullptr;
+    inline void callback_handler(const char* data) override {
+        auto [t0, t1] = parser::parse<T0, T1>(data);
+        handler(t0, t1);
+    }
+public:
+    Command_T2(const char* name, void (*handler)(T0, T1)) : CommandTemplate(name), handler(handler) { }
+};
+
+template<typename T0, typename T1, typename T2>
+class Command_T3 : public CommandTemplate{
+    void (*handler)(T0, T1, T2) = nullptr;
+    inline void callback_handler(const char* data) override {
+        auto [t0, t1, t2] = parser::parse<T0, T1, T2>(data);
+        handler(t0, t1, t2);
+    }
+public:
+    Command_T3(const char* name, void (*handler)(T0, T1, T2)) : CommandTemplate(name), handler(handler) { }
+};

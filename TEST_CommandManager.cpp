@@ -7,10 +7,15 @@ using ::testing::StrictMock;
 
 class CommandBaseMock : public Command {
 public:
-    MOCK_METHOD(void, callback, (const char *));
+    static int callbackTested;
 
-    explicit CommandBaseMock(const char* name) : Command(name, ([this](const char* ch) {this->callback(ch);})) { }
+    static void callback(const char *) {
+        callbackTested++;
+    }
+
+    explicit CommandBaseMock(const char* name) : Command(name, callback) { }
 };
+int CommandBaseMock::callbackTested = 0;
 
 static void enable_interrupts() {}
 static void disable_interrupts() {}
@@ -38,12 +43,10 @@ TEST (COMMAND_MANAGER, basic) {
         command_manager.reader.putChar(data[i]);
     }
 
-    EXPECT_CALL(jeden, callback(::testing::_));
-    EXPECT_CALL(dwa, callback(::testing::_));
-
     command_manager.run();
 
     EXPECT_EQ(printedString, std::string(""));
+    EXPECT_EQ(CommandBaseMock::callbackTested, 2);
 }
 
 char data_table[3][100];

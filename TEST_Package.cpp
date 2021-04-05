@@ -96,3 +96,20 @@ TEST(PACKAGE, create_receive_error) {
 
     EXPECT_EQ(gotValidData, false);
 }
+
+
+TEST(PACKAGE, CRC) {
+    uint8_t byte = 117;
+    uint16_t crc = 0xFFFF;
+
+
+    // CRC-CCITT without LUT
+    byte ^= (uint8_t)(crc & 0x00ffu);
+    byte ^= (uint8_t)(byte << 4u);
+    crc = (((uint16_t)((uint16_t)byte << 8u) | (uint16_t)((uint8_t)crc >> 8u)) ^ (uint8_t)(byte >> 4u) ^ ((uint16_t)byte << 3u));
+
+    std::cout << crc << std::endl;
+//
+//    return (((uint16_t)((uint16_t)byte << 8u) | (uint16_t)((uint8_t)crc >> 8u)) ^ (uint8_t)(byte >> 4u) ^ ((uint16_t)byte << 3u));
+
+}
