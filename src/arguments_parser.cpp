@@ -19,6 +19,6 @@ namespace parser {
     }
 
     template<> void parse<void>(std::string_view const s) {
-        return;
+        (void) s;
     }
 }

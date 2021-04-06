@@ -17,4 +17,6 @@ else()
             gmock
             gtest_main
             )
+
+    SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -Werror=unused-parameter")
 endif()
