@@ -81,11 +81,21 @@ public:
     Command(const char* name, void (*handler)(const char*)) : CommandTemplate(name), handler(handler) { }
 };
 
+class Command_Void : public CommandTemplate{
+    void (*handler)() = nullptr;
+    inline void callback_handler(const char* data) override {
+        (void) data;
+        handler();
+    }
+public:
+    Command_Void(const char* name, void (*handler)()) : CommandTemplate(name), handler(handler) { }
+};
+
 template<class T0>
 class Command_T1 : public CommandTemplate{
     void (*handler)(T0) = nullptr;
     inline void callback_handler(const char* data) override {
-        auto [t0] = parser::get<int>(data);
+        auto [t0] = parser::get<T0>(data);
         handler(t0);
     }
 public:

@@ -17,4 +17,8 @@ namespace parser {
     template<> char parse<char>(std::string_view const s) {
         return s[0];
     }
+
+    template<> void parse<void>(std::string_view const s) {
+        return;
+    }
 }

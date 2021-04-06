@@ -58,3 +58,15 @@ TEST(COMMAND, commandChar) {
     myCommand.parse((char*)"myCommand command", 9);
     EXPECT_STREQ(buffer, "command");
 }
+
+
+void voidCallback() {
+    int0 = 10;
+}
+
+TEST(COMMAND, commandVoid) {
+    int0 = 0;
+    Command_Void myCommand("myCommand", voidCallback);
+    myCommand.parse((char*)"myCommand", 9);
+    EXPECT_EQ(int0, 10);
+}
