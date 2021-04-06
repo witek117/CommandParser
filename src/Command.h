@@ -39,6 +39,13 @@ namespace parser {
                 return_data[i] = strtol(data, &end, 10);
                 data = end;
             }
+        } else if constexpr (std::is_same<char, T>()) {
+            char *end;
+
+            for (int i=0; i < size; i++) {
+                return_data[i] = data[0];
+                data = end;
+            }
         }
         return return_data;
     }
@@ -71,15 +78,15 @@ class Command : public CommandTemplate{
         handler(data);
     }
 public:
-    Command(const char* name, void (*handler)(const char* data)) : CommandTemplate(name), handler(handler) { }
+    Command(const char* name, void (*handler)(const char*)) : CommandTemplate(name), handler(handler) { }
 };
 
-template<typename T0>
+template<class T0>
 class Command_T1 : public CommandTemplate{
     void (*handler)(T0) = nullptr;
     inline void callback_handler(const char* data) override {
-        auto [t0, t1] = parser::parse<T0>(data);
-        handler(t0, t1);
+        auto [t0] = parser::get<int>(data);
+        handler(t0);
     }
 public:
     Command_T1(const char* name, void (*handler)(T0)) : CommandTemplate(name), handler(handler) { }
@@ -89,7 +96,7 @@ template<typename T0, typename T1>
 class Command_T2 : public CommandTemplate{
     void (*handler)(T0, T1) = nullptr;
     inline void callback_handler(const char* data) override {
-        auto [t0, t1] = parser::parse<T0, T1>(data);
+        auto [t0, t1] = parser::get<T0, T1>(data);
         handler(t0, t1);
     }
 public:
@@ -100,7 +107,7 @@ template<typename T0, typename T1, typename T2>
 class Command_T3 : public CommandTemplate{
     void (*handler)(T0, T1, T2) = nullptr;
     inline void callback_handler(const char* data) override {
-        auto [t0, t1, t2] = parser::parse<T0, T1, T2>(data);
+        auto [t0, t1, t2] = parser::get<T0, T1, T2>(data);
         handler(t0, t1, t2);
     }
 public:

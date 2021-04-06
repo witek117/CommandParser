@@ -9,8 +9,9 @@ else()
     add_subdirectory(external)
     add_subdirectory(src)
 
-    add_executable(unit_tests TEST_CommandManager.cpp TEST_Package.cpp TEST_Parser.cpp TEST_Packge&CommandManager.cpp)
-    target_link_libraries(unit_tests
+    add_executable(CommandParser_unitTests TEST_Command.cpp TEST_CommandManager.cpp TEST_Package.cpp TEST_Parser.cpp TEST_Packge&CommandManager.cpp)
+
+    target_link_libraries(CommandParser_unitTests
             CommandParser
             gtest
             gmock

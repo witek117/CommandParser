@@ -6,7 +6,7 @@
 #include "Command.h"
 #include "Package.h"
 
-constexpr char endChar = '\n';
+
 
 class PrintManager {
 protected:
@@ -38,6 +38,8 @@ public:
     void print(float value) {
         printData(buff, sprintf(buff, "%.2f", value));
     }
+
+    static const char endChar = '\n';
 };
 
 class ReadManager {
@@ -47,7 +49,7 @@ public:
 
     void putChar(char c) {
         bufferRx.append(c);
-        if (c == endChar) {
+        if (c == PrintManager::endChar) {
             commandsInBuffer++;
         }
     }

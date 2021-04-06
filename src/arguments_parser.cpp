@@ -13,4 +13,8 @@ namespace parser {
     template<> float parse<float>(std::string_view const s) {
         return atof(s.data());
     }
+
+    template<> char parse<char>(std::string_view const s) {
+        return s[0];
+    }
 }
