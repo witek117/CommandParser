@@ -120,6 +120,12 @@ public:
                 return;
             }
         }
+
+        if (strcmp(data, "?") == 0) {
+            getInfo();
+            return;
+        }
+
         print("undefined\n");
     }
 

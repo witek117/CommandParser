@@ -285,4 +285,12 @@ TEST(COMMAND_MANAGER, getInfoDifferentValues) {
 
     command_manager.getInfo();
     EXPECT_TRUE(printedString == compareString);
+
+    printedString = "";
+    const char* data = "?\n";
+    for (size_t i =0; i < strlen(data); i++) {
+        command_manager.reader.putChar(data[i]);
+    }
+    command_manager.run();
+    EXPECT_TRUE(printedString == compareString);
 }
