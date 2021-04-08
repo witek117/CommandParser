@@ -9,7 +9,12 @@ else()
     add_subdirectory(external)
     add_subdirectory(src)
 
-    add_executable(CommandParser_unitTests TEST_Command.cpp TEST_CommandManager.cpp TEST_Package.cpp TEST_Parser.cpp TEST_Packge&CommandManager.cpp)
+    add_executable(CommandParser_unitTests
+            tests/TEST_Command.cpp
+            tests/TEST_CommandManager.cpp
+            tests/TEST_Package.cpp
+            tests/TEST_Parser.cpp
+            tests/TEST_Package&CommandManager.cpp)
 
     target_link_libraries(CommandParser_unitTests
             CommandParser
