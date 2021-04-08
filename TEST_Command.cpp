@@ -1,7 +1,10 @@
 #include <Command.h>
+
 #include <gmock/gmock.h>
 #include <vector>
 
+
+static char buffer[20] = {0};
 static int int0 = 0;
 static float float0 = 0.0f;
 static char char0 = '0';
@@ -15,6 +18,11 @@ TEST(COMMAND, commandInt) {
     myInt.parse((char*)"myInt 5", 5);
 
     EXPECT_EQ(int0, 5);
+
+    memset(buffer, 0, sizeof(buffer));
+    uint8_t len = myInt.getValuesInfo(buffer);
+    EXPECT_STREQ(buffer, "i");
+    EXPECT_EQ(len, 1);
 }
 
 void intFloat(int data0, float data1) {
@@ -29,6 +37,11 @@ TEST(COMMAND, commandIntFloat) {
 
     EXPECT_EQ(int0, 5);
     EXPECT_EQ(float0, 2.54f);
+
+    memset(buffer, 0, sizeof(buffer));
+    uint8_t len = myInt.getValuesInfo(buffer);
+    EXPECT_STREQ(buffer, "if");
+    EXPECT_EQ(len, 2);
 }
 
 void intFloatChar(int data0, float data1, char data2) {
@@ -45,9 +58,25 @@ TEST(COMMAND, commandIntFloatChar) {
     EXPECT_EQ(int0, 5);
     EXPECT_EQ(float0, 2.54f);
     EXPECT_EQ(char0, 'i');
+
+    memset(buffer, 0, sizeof(buffer));
+    uint8_t len = myInt.getValuesInfo(buffer);
+    EXPECT_STREQ(buffer, "ifc");
+    EXPECT_EQ(len, 3);
+}
+void doubleCallbakc(double d0, double d1, double d2) {
+    d0 = d1 = d2;
 }
 
-char buffer[20] = {0};
+TEST(COMMAND, commandDouble) {
+    Command_T3<double, double, double> doubleCommand("myInt", doubleCallbakc);
+
+    memset(buffer, 0, sizeof(buffer));
+    uint8_t len = doubleCommand.getValuesInfo(buffer);
+    EXPECT_STREQ(buffer, "ddd");
+    EXPECT_EQ(len, 3);
+}
+
 void myCommandCallback(const char* data) {
     strcpy(buffer, data);
 }
@@ -57,6 +86,11 @@ TEST(COMMAND, commandChar) {
     Command myCommand("myCommand", myCommandCallback);
     myCommand.parse((char*)"myCommand command", 9);
     EXPECT_STREQ(buffer, "command");
+
+    memset(buffer, 0, sizeof(buffer));
+    uint8_t len = myCommand.getValuesInfo(buffer);
+    EXPECT_STREQ(buffer, "c*");
+    EXPECT_EQ(len, 2);
 }
 
 
@@ -69,4 +103,18 @@ TEST(COMMAND, commandVoid) {
     Command_Void myCommand("myCommand", voidCallback);
     myCommand.parse((char*)"myCommand", 9);
     EXPECT_EQ(int0, 10);
+
+    memset(buffer, 0, sizeof(buffer));
+    uint8_t len = myCommand.getValuesInfo(buffer);
+    EXPECT_STREQ(buffer, "v");
+    EXPECT_EQ(len, 1);
+}
+
+TEST(COMMAND, getInfo) {
+    int0 = 0;
+    Command_Void myCommand("myCommand", voidCallback);
+
+    memset(buffer, 0, sizeof(buffer));
+    myCommand.getInfo(buffer);
+    EXPECT_STREQ(buffer, "myCommand\tv\tf");
 }

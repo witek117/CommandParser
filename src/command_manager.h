@@ -80,6 +80,16 @@ public:
         }
     }
 
+    void getInfo() {
+        char infoBuffer[30] = {0};
+        for(uint8_t i = 0; i < commandsCount; i++) {
+            memset(infoBuffer, 0, sizeof(infoBuffer));
+            uint8_t len = commands[i]->getInfo(infoBuffer);
+            infoBuffer[len++] = '\n';
+            printData(infoBuffer, len);
+        }
+    }
+
     void init() {}
 
     bool run() {

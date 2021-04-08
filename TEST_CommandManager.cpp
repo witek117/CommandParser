@@ -57,7 +57,7 @@ void callback1(const char* data) {
     data_len++;
 }
 
-TEST (COMMAND_MANAGER, multi_commands) {
+TEST (COMMAND_MANAGER, multiCommands) {
     printedString = "";
     Command jeden("jeden", callback1);
     Command dwa("dwa", callback1);
@@ -83,15 +83,15 @@ TEST (COMMAND_MANAGER, multi_commands) {
 
 float ff1, ff2;
 
-void two_floats(const char* data) {
+void twoFloats(const char* data) {
     auto [f1, f2] = parser::get<float, float>(data);
     ff1 = f1;
     ff2 = f2;
 }
 
-TEST(COMMAND_MANAGER, two_floats) {
+TEST(COMMAND_MANAGER, twoFloats) {
     printedString = "";
-    Command floats("floats", two_floats);
+    Command floats("floats", twoFloats);
 
     CommandManager<1> command_manager(&enable_interrupts, &disable_interrupts, &print_function);
     command_manager.addCommand(&floats);
@@ -215,4 +215,74 @@ TEST(COMMAND_MANAGER, print) {
     printedString = "";
     command_manager.print("123", 2);
     EXPECT_EQ(printedString, std::string("12"));
+}
+
+void info0Callback() { }
+void info1Callback() { }
+void info2Callback() { }
+
+TEST(COMMAND_MANAGER, getInfoVoid) {
+    CommandManager<3> command_manager(&enable_interrupts, &disable_interrupts, &print_function);
+    command_manager.init();
+
+    Command_Void info0("info0", info0Callback);
+    Command_Void info1("info1", info1Callback);
+    Command_Void info2("info2", info2Callback);
+
+    command_manager.addCommand(reinterpret_cast<Command *>(&info0));
+    command_manager.addCommand(reinterpret_cast<Command *>(&info1));
+    command_manager.addCommand(reinterpret_cast<Command *>(&info2));
+
+    std::string compareString;
+    printedString = "";
+
+    compareString += "info0\tv\tf\n";
+    compareString += "info1\tv\tf\n";
+    compareString += "info2\tv\tf\n";
+
+    command_manager.getInfo();
+    EXPECT_TRUE(printedString == compareString);
+}
+
+void intCallback(int data) { (void)data; }
+void floatCallback(float data) { (void)data; }
+void doubleCallback(double data) { (void)data; }
+void charCallback(char data) { (void)data; }
+void charPointerCallback(const char* data) { (void)data; }
+
+
+TEST(COMMAND_MANAGER, getInfoDifferentValues) {
+    CommandManager<5> command_manager(&enable_interrupts, &disable_interrupts, &print_function);
+    command_manager.init();
+
+    char names[5][10] = {"info0", "info1", "info2", "info3", "info4"};
+    char valuesInfo[5][3] = {"i", "f", "d", "c", "c*"};
+    char returnValues[5][3] = {"t", "f", "t", "f", "f"};
+
+    Command_T1<int>     info0(names[0], intCallback, true);
+    Command_T1<float>   info1(names[1], floatCallback, false);
+    Command_T1<double>  info2(names[2], doubleCallback, true);
+    Command_T1<char>    info3(names[3], charCallback);
+    Command             info4(names[4], charPointerCallback);
+
+    command_manager.addCommand(reinterpret_cast<Command *>(&info0));
+    command_manager.addCommand(reinterpret_cast<Command *>(&info1));
+    command_manager.addCommand(reinterpret_cast<Command *>(&info2));
+    command_manager.addCommand(reinterpret_cast<Command *>(&info3));
+    command_manager.addCommand(reinterpret_cast<Command *>(&info4));
+
+    std::string compareString;
+    printedString = "";
+
+    for(int i = 0; i < 5; i++) {
+        compareString += names[i];
+        compareString += '\t';
+        compareString += valuesInfo[i];
+        compareString += '\t';
+        compareString += returnValues[i];
+        compareString += '\n';
+    }
+
+    command_manager.getInfo();
+    EXPECT_TRUE(printedString == compareString);
 }

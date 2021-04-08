@@ -54,10 +54,25 @@ namespace parser {
 class CommandTemplate {
     const char * name;
     size_t  name_len = 0;
-public:
+    bool shouldReturnValue = false;
+
+protected:
     virtual void callback_handler(const char* data) = 0;
+    virtual uint8_t getValuesInfo(char* buffer) = 0;
+
 public:
-    explicit CommandTemplate(const char* name) : name(name), name_len(strlen(name)){ }
+    uint8_t getInfo(char* buffer) {
+        uint8_t offset = 0;
+        memcpy(buffer, name, name_len);
+        offset += name_len;
+        buffer[offset++] = '\t';
+        offset += getValuesInfo(buffer + offset);
+        buffer[offset++] = '\t';
+        buffer[offset++] = shouldReturnValue ? 't' : 'f';
+        return offset;
+    }
+
+    explicit CommandTemplate(const char* name, bool shouldReturnValue) : name(name), name_len(strlen(name)), shouldReturnValue(shouldReturnValue){ }
 
     bool parse(char * data, size_t data_len) {
         if (data_len != name_len) {
@@ -77,8 +92,15 @@ class Command : public CommandTemplate{
     inline void callback_handler(const char* data) override {
         handler(data);
     }
+
 public:
-    Command(const char* name, void (*handler)(const char*)) : CommandTemplate(name), handler(handler) { }
+    uint8_t getValuesInfo(char* buffer) {
+        buffer[0] = 'c';
+        buffer[1] = '*';
+        return 2;
+    }
+
+    Command(const char* name, void (*handler)(const char*), bool shouldReturnValue = false) : CommandTemplate(name, shouldReturnValue), handler(handler) { }
 };
 
 class Command_Void : public CommandTemplate{
@@ -87,8 +109,14 @@ class Command_Void : public CommandTemplate{
         (void) data;
         handler();
     }
+
 public:
-    Command_Void(const char* name, void (*handler)()) : CommandTemplate(name), handler(handler) { }
+    uint8_t getValuesInfo(char* buffer) {
+        buffer[0] = 'v';
+        return 1;
+    }
+
+    Command_Void(const char* name, void (*handler)(), bool shouldReturnValue = false) : CommandTemplate(name, shouldReturnValue), handler(handler) { }
 };
 
 template<class T0>
@@ -98,8 +126,14 @@ class Command_T1 : public CommandTemplate{
         auto [t0] = parser::get<T0>(data);
         handler(t0);
     }
+
 public:
-    Command_T1(const char* name, void (*handler)(T0)) : CommandTemplate(name), handler(handler) { }
+    uint8_t getValuesInfo(char* buffer) {
+        buffer[0] = typeid(T0).name()[0];
+        return 1;
+    }
+
+    Command_T1(const char* name, void (*handler)(T0), bool shouldReturnValue = false) : CommandTemplate(name, shouldReturnValue), handler(handler) { }
 };
 
 template<typename T0, typename T1>
@@ -109,8 +143,15 @@ class Command_T2 : public CommandTemplate{
         auto [t0, t1] = parser::get<T0, T1>(data);
         handler(t0, t1);
     }
+
 public:
-    Command_T2(const char* name, void (*handler)(T0, T1)) : CommandTemplate(name), handler(handler) { }
+    uint8_t getValuesInfo(char* buffer) {
+        buffer[0] = typeid(T0).name()[0];
+        buffer[1] = typeid(T1).name()[0];
+        return 2;
+    }
+
+    Command_T2(const char* name, void (*handler)(T0, T1), bool shouldReturnValue = false) : CommandTemplate(name, shouldReturnValue), handler(handler) { }
 };
 
 template<typename T0, typename T1, typename T2>
@@ -120,6 +161,14 @@ class Command_T3 : public CommandTemplate{
         auto [t0, t1, t2] = parser::get<T0, T1, T2>(data);
         handler(t0, t1, t2);
     }
+
 public:
-    Command_T3(const char* name, void (*handler)(T0, T1, T2)) : CommandTemplate(name), handler(handler) { }
+    uint8_t getValuesInfo(char* buffer) {
+        buffer[0] = typeid(T0).name()[0];
+        buffer[1] = typeid(T1).name()[0];
+        buffer[2] = typeid(T2).name()[0];
+        return 3;
+    }
+
+    Command_T3(const char* name, void (*handler)(T0, T1, T2), bool shouldReturnValue = false) : CommandTemplate(name, shouldReturnValue), handler(handler) { }
 };
