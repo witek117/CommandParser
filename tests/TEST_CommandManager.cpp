@@ -25,6 +25,12 @@ static void print_function(uint8_t c) {
     printedString += c;
 }
 
+static void print_function_buffer(uint8_t* c, uint16_t len) {
+    for(uint16_t i =0; i < len; i++) {
+        printedString += c[i];
+    }
+}
+
 TEST (COMMAND_MANAGER, basic) {
     printedString = "";
     CommandBaseMock jeden("jeden");
@@ -110,6 +116,29 @@ TEST(COMMAND_MANAGER, twoFloats) {
     EXPECT_EQ(ff2, (float)(3.654));
     EXPECT_EQ(printedString, std::string(""));
 }
+
+TEST(COMMAND_MANAGER, twoFloats_print_function_buffer) {
+    printedString = "";
+    Command floats("floats", twoFloats);
+
+    CommandManager<1> command_manager(&enable_interrupts, &disable_interrupts, &print_function_buffer);
+    command_manager.addCommand(&floats);
+
+    command_manager.init();
+
+    const char * data = "floats 2.456 3.654\n";
+
+    for (size_t i =0; i < strlen(data); i++) {
+        command_manager.reader.putChar(data[i]);
+    }
+
+    command_manager.run();
+
+    EXPECT_EQ(ff1, (float)(2.456));
+    EXPECT_EQ(ff2, (float)(3.654));
+    EXPECT_EQ(printedString, std::string(""));
+}
+
 
 int functionNUmber = 0;
 void question1(const char * data) {

@@ -96,7 +96,7 @@ public:
                 length = 0;
         }
 
-        return true;
+        return false;
     }
 
     uint8_t createPackage(char* data, uint8_t length) {

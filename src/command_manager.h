@@ -59,6 +59,7 @@ template <int size>
 class CommandManager : public PrintManager {
 public:
     void(*printFunction)(uint8_t) = nullptr;
+    void(*printFunctionBuffer)(uint8_t*, uint16_t) = nullptr;
     ReadManager reader;
 protected:
     void(*enableInterrupts)() = nullptr;
@@ -74,9 +75,17 @@ public:
             printFunction(printFunction_m), enableInterrupts(enableInterrupts), disableInterrupts(disableInterrupts) {
     }
 
+    explicit CommandManager(void(*enableInterrupts)(), void(*disableInterrupts)(), void(*printFunction_m)(uint8_t*, uint16_t) ) :
+            printFunctionBuffer(printFunction_m), enableInterrupts(enableInterrupts), disableInterrupts(disableInterrupts) {
+    }
+
     inline void printData(const char *s, uint8_t length) override {
-        for(uint8_t i = 0; i < length; i++) {
-            printFunction(s[i]);
+        if (printFunctionBuffer) {
+            printFunctionBuffer((uint8_t*)s, (uint16_t)length);
+        } else {
+            for(uint8_t i = 0; i < length; i++) {
+                printFunction(s[i]);
+            }
         }
     }
 
@@ -160,6 +169,10 @@ public:
         CommandManager<size>(enableInterrupts, disableInterrupts, printFunction_m) {
     }
 
+    PackageAndCommandManager(void(*enableInterrupts)(), void(*disableInterrupts)(), void(*printFunction_m)(uint8_t*, uint16_t)) :
+            CommandManager<size>(enableInterrupts, disableInterrupts, printFunction_m) {
+    }
+
     void useValidData() override {
         for (uint8_t i = 0 ; i < length; i++) {
             CommandManager<size>::reader.putChar(packageRxBuffer[i]);
@@ -168,9 +181,12 @@ public:
 
     void printData(const char *s, uint8_t length) override {
         uint8_t packetLength = createPackage((char*)s, length);
-
-        for(uint8_t i = 0; i < packetLength; i++) {
-            CommandManager<size>::printFunction((uint8_t)packageTxBuffer[i]);
+        if(CommandManager<size>::printFunctionBuffer) {
+            CommandManager<size>::printFunctionBuffer(packageTxBuffer, (uint16_t)packetLength);
+        } else {
+            for(uint8_t i = 0; i < packetLength; i++) {
+                CommandManager<size>::printFunction(packageTxBuffer[i]);
+            }
         }
     }
 };

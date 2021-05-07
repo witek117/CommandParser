@@ -94,7 +94,7 @@ class Command : public CommandTemplate{
     }
 
 public:
-    uint8_t getValuesInfo(char* buffer) {
+    uint8_t getValuesInfo(char* buffer) override {
         buffer[0] = 'c';
         buffer[1] = '*';
         return 2;
@@ -111,7 +111,7 @@ class Command_Void : public CommandTemplate{
     }
 
 public:
-    uint8_t getValuesInfo(char* buffer) {
+    uint8_t getValuesInfo(char* buffer) override {
         buffer[0] = 'v';
         return 1;
     }
@@ -128,7 +128,7 @@ class Command_T1 : public CommandTemplate{
     }
 
 public:
-    uint8_t getValuesInfo(char* buffer) {
+    uint8_t getValuesInfo(char* buffer) override {
         buffer[0] = typeid(T0).name()[0];
         return 1;
     }
@@ -145,7 +145,7 @@ class Command_T2 : public CommandTemplate{
     }
 
 public:
-    uint8_t getValuesInfo(char* buffer) {
+    uint8_t getValuesInfo(char* buffer) override {
         buffer[0] = typeid(T0).name()[0];
         buffer[1] = typeid(T1).name()[0];
         return 2;
@@ -163,7 +163,7 @@ class Command_T3 : public CommandTemplate{
     }
 
 public:
-    uint8_t getValuesInfo(char* buffer) {
+    uint8_t getValuesInfo(char* buffer) override {
         buffer[0] = typeid(T0).name()[0];
         buffer[1] = typeid(T1).name()[0];
         buffer[2] = typeid(T2).name()[0];

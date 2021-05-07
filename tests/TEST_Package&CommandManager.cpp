@@ -20,6 +20,12 @@ static void print_function(uint8_t c) {
     printedString += c;
 }
 
+static void print_function_buffer(uint8_t* c, uint16_t len) {
+    for(uint16_t i =0; i < len; i++) {
+        printedString += c[i];
+    }
+}
+
 Command one("one", one_callback);
 Command two("two", two_callback);
 
@@ -114,6 +120,8 @@ TEST(PACKAGE_AND_COMMAND, undefined) {
     txData[myTextLength + 2] = Package::getFirstByte(crc);
     txData[myTextLength + 3] = Package::getSecondByte(crc);
 
+    printedString = "";
+
     for(uint8_t i = 0; i < (myTextLength + 4); i++) {
         command_manager.putChar(txData[i]);
     }
@@ -131,10 +139,40 @@ TEST(PACKAGE_AND_COMMAND, without_crc) {
 
     uint8_t myText[] = "one\n";
 
-    for(uint8_t i = 0; i < sizeof(myText); i++) {
-        command_manager.putChar(myText[i]);
+    for(unsigned char i : myText) {
+        command_manager.putChar(i);
     }
     printedString = "";
     command_manager.run();
     EXPECT_EQ(printedString, std::string(""));
+}
+
+TEST(PACKAGE_AND_COMMAND, print_function_buffer) {
+    PackageAndCommandManager<2> command_manager(&enable_interrupts, &disable_interrupts, &print_function_buffer);
+    command_manager.addCommand(&one);
+    command_manager.addCommand(&two);
+
+    command_manager.init();
+
+    uint8_t myText[] = "three 123\n";
+    uint8_t myTextLength = sizeof(myText);
+    uint8_t txData [100] = {0};
+
+    txData[0] = 0xc8;
+    txData[1] = myTextLength;
+    memcpy(&txData[2], myText, myTextLength);
+
+    uint16_t crc = Package::getCRC(txData, 2, myTextLength);
+
+    txData[myTextLength + 2] = Package::getFirstByte(crc);
+    txData[myTextLength + 3] = Package::getSecondByte(crc);
+
+    printedString = "";
+
+    for(uint8_t i = 0; i < (myTextLength + 4); i++) {
+        command_manager.putChar(txData[i]);
+    }
+
+    command_manager.run();
+    EXPECT_EQ(printedString, std::string("\xC8\nundefined\nH\t"));
 }
