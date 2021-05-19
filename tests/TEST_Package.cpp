@@ -1,15 +1,21 @@
 #include "Package.h"
+#include "Stream.h"
 #include <gmock/gmock.h>
 
-bool gotValidData = false;
-class TestPackage : public Package {
-    void useValidData() {
-        gotValidData = true;
-    }
-};
+static Stream stream;
+
+static void enable_interrupts() {}
+static void disable_interrupts() {}
+
+//bool gotValidData = false;
+//class TestPackage : public Package {
+//    void useValidData() {
+//        gotValidData = true;
+//    }
+//};
 
 TEST(PACKAGE, create_package) {
-    TestPackage package;
+    Package package(stream);
     const char *data = "this is the test";
     uint8_t dataLength = sizeof(data);
     uint8_t packageLength = package.createPackage(const_cast<char *>(data), dataLength);
@@ -29,72 +35,100 @@ TEST(PACKAGE, create_package) {
 }
 
 TEST(PACKAGE, receive_package) {
-    gotValidData = false;
-    TestPackage package;
+    stream.flush();
+    Package package(stream);
     uint8_t myData [] = "this is the test 1234\n";
     uint16_t crc = Package::getCRC(myData, 0, (uint8_t) sizeof(myData));
 
-    package.putChar(0xc8);
-    package.putChar((uint8_t) sizeof(myData));
+    stream.pushToRXBuffer(0xc8);
+    stream.pushToRXBuffer((uint8_t) sizeof(myData));
 
     for (unsigned char i : myData) {
-        package.putChar(i);
+        stream.pushToRXBuffer(i);
     }
-    package.putChar(Package::getFirstByte(crc));
-    package.putChar(Package::getSecondByte(crc));
+    stream.pushToRXBuffer(Package::getFirstByte(crc));
+    stream.pushToRXBuffer(Package::getSecondByte(crc));
 
-    EXPECT_EQ(gotValidData, true);
+    for(int i = 0; i < 100; i++) {
+        package.run();
+    }
+    EXPECT_EQ(package.available(), sizeof(myData));
 }
 
 TEST(PACKAGE, create_receive) {
-
-    TestPackage package;
+    stream.flush();
+    Package package(stream);
     const char *data = "this is the test";
-    uint8_t dataLength = sizeof(data);
+    uint8_t dataLength = strlen(data);
     uint8_t packageLength = package.createPackage(const_cast<char *>(data), dataLength);
 
-    gotValidData = false;
     for (uint8_t i = 0; i < packageLength; i++) {
-        package.putChar(package.packageTxBuffer[i]);
+        stream.pushToRXBuffer(package.packageTxBuffer[i]);
     }
-    EXPECT_EQ(gotValidData, true);
 
-    gotValidData = false;
-    for (uint8_t i = 0; i < packageLength; i++) {
-        package.putChar(package.packageTxBuffer[i]);
+    for(int i = 0; i < 100; i++) {
+        package.run();
     }
-    EXPECT_EQ(gotValidData, true);
+
+    EXPECT_EQ(package.available(), strlen(data));
+
+    package.flush();
+
+    for (uint8_t i = 0; i < packageLength; i++) {
+        stream.pushToRXBuffer(package.packageTxBuffer[i]);
+    }
+
+    for(int i = 0; i < 100; i++) {
+        package.run();
+    }
+
+    EXPECT_EQ(package.available(), strlen(data));
+
+    package.flush();
 
     uint8_t temp_byte = package.packageTxBuffer[packageLength - 1];
     package.packageTxBuffer[packageLength - 1] = 4; // Create CRC error
-    gotValidData = false;
+
     for (uint8_t i = 0; i < packageLength; i++) {
-        package.putChar(package.packageTxBuffer[i]);
+        stream.pushToRXBuffer(package.packageTxBuffer[i]);
     }
-    EXPECT_EQ(gotValidData, false);
+
+    for(int i = 0; i < 100; i++) {
+        package.run();
+    }
+
+    EXPECT_EQ(package.available(), 0);
+
+    package.flush();
 
     package.packageTxBuffer[packageLength - 1] = temp_byte;
-    gotValidData = false;
+
     for (uint8_t i = 0; i < packageLength; i++) {
-        package.putChar(package.packageTxBuffer[i]);
+        stream.pushToRXBuffer(package.packageTxBuffer[i]);
     }
-    EXPECT_EQ(gotValidData, true);
+
+    for(int i = 0; i < 100; i++) {
+        package.run();
+    }
+    EXPECT_EQ(package.available(), strlen(data));
 }
 
 TEST(PACKAGE, create_receive_error) {
-    gotValidData = false;
-    TestPackage package;
+    Package package(stream);
     const char *data = "this is the test";
-    uint8_t dataLength = sizeof(data);
+    uint8_t dataLength = strlen(data);
     uint8_t packageLength = package.createPackage(const_cast<char *>(data), dataLength);
 
     package.packageTxBuffer[packageLength - 1] = 4; // Create CRC error
 
     for (uint8_t i = 0; i < packageLength; i++) {
-        package.putChar(package.packageTxBuffer[i]);
+        stream.pushToRXBuffer(package.packageTxBuffer[i]);
     }
 
-    EXPECT_EQ(gotValidData, false);
+    for(int i = 0; i < 100; i++) {
+        package.run();
+    }
+    EXPECT_EQ(package.available(), 0);
 }
 
 

@@ -1,4 +1,5 @@
 #include "Package.h"
+#include "Stream.h"
 #include <Command.h>
 #include <command_manager.h>
 
@@ -15,28 +16,30 @@ static void one_callback(const char* data) {
 static void two_callback(const char* data) {
     myInt = parser::parse<int>(data);
 }
+static Stream stream;
 
-static void print_function(uint8_t c) {
-    printedString += c;
-}
+//static void print_function(uint8_t c) {
+//    printedString += c;
+//}
 
-static void print_function_buffer(uint8_t* c, uint16_t len) {
-    for(uint16_t i =0; i < len; i++) {
-        printedString += c[i];
-    }
-}
+//static void print_function_buffer(uint8_t* c, uint16_t len) {
+//    for(uint16_t i =0; i < len; i++) {
+//        printedString += c[i];
+//    }
+//}
 
 Command one("one", one_callback);
 Command two("two", two_callback);
 
-class TestPackage : public Package {
-    void useValidData() {
-
-    }
-};
+//class TestPackage : public Package {
+//    void useValidData() {
+//
+//    }
+//};
 
 TEST(PACKAGE_AND_COMMAND, create) {
-    PackageAndCommandManager<2> command_manager(&enable_interrupts, &disable_interrupts, &print_function);
+    Package package(stream);
+    CommandManager<2> command_manager(package, &enable_interrupts, &disable_interrupts);
     command_manager.addCommand(&one);
     command_manager.addCommand(&two);
     command_manager.init();
@@ -56,30 +59,42 @@ TEST(PACKAGE_AND_COMMAND, create) {
     txData[7] = Package::getSecondByte(crc);
 
     for(uint8_t i = 0; i < 8; i++) {
-        command_manager.putChar(txData[i]);
+        stream.pushToRXBuffer(txData[i]);
     }
     printedString = "";
-    command_manager.run();
+    for(int i = 0; i < 100; i++) {
+        package.run();
+        command_manager.run();
+    }
+
     EXPECT_EQ(printedString, std::string("one"));
 
     txData[7] = 0; // create error
+
     for(uint8_t i = 0; i < 8; i++) {
-        command_manager.putChar(txData[i]);
+        stream.pushToRXBuffer(txData[i]);
     }
+
     printedString = "";
-    command_manager.run();
+
+    for(int i = 0; i < 100; i++) {
+        package.run();
+        command_manager.run();
+    }
+
     EXPECT_EQ(printedString, std::string(""));
 }
 
 TEST(PACKAGE_AND_COMMAND, numbers) {
-    PackageAndCommandManager<2> command_manager(&enable_interrupts, &disable_interrupts, &print_function);
+    Package package(stream);
+    CommandManager<2> command_manager(package, &enable_interrupts, &disable_interrupts);
     command_manager.addCommand(&one);
     command_manager.addCommand(&two);
 
     command_manager.init();
 
     uint8_t myText[] = "two 123\n";
-    uint8_t myTextLength = sizeof(myText);
+    uint8_t myTextLength = strlen(reinterpret_cast<const char *>(myText));
     uint8_t txData [100] = {0};
 
     txData[0] = 0xc8;
@@ -92,23 +107,29 @@ TEST(PACKAGE_AND_COMMAND, numbers) {
     txData[myTextLength + 3] = Package::getSecondByte(crc);
 
     for(uint8_t i = 0; i < (myTextLength + 4); i++) {
-        command_manager.putChar(txData[i]);
+        stream.pushToRXBuffer(txData[i]);
     }
 
     myInt = 0;
-    command_manager.run();
+
+    for(int i = 0; i < 100; i++) {
+        package.run();
+        command_manager.run();
+    }
+
     EXPECT_EQ(myInt, 123);
 }
 
 TEST(PACKAGE_AND_COMMAND, undefined) {
-    PackageAndCommandManager<2> command_manager(&enable_interrupts, &disable_interrupts, &print_function);
+    Package package(stream);
+    CommandManager<2> command_manager(package, &enable_interrupts, &disable_interrupts);
     command_manager.addCommand(&one);
     command_manager.addCommand(&two);
 
     command_manager.init();
 
     uint8_t myText[] = "three 123\n";
-    uint8_t myTextLength = sizeof(myText);
+    uint8_t myTextLength = strlen(reinterpret_cast<const char *>(myText));
     uint8_t txData [100] = {0};
 
     txData[0] = 0xc8;
@@ -123,39 +144,47 @@ TEST(PACKAGE_AND_COMMAND, undefined) {
     printedString = "";
 
     for(uint8_t i = 0; i < (myTextLength + 4); i++) {
-        command_manager.putChar(txData[i]);
+        stream.pushToRXBuffer(txData[i]);
     }
 
-    command_manager.run();
-    EXPECT_EQ(printedString, std::string("\xC8\nundefined\nH\t"));
+    for(int i = 0; i < 100; i++) {
+        package.run();
+        command_manager.run();
+    }
+    EXPECT_EQ(stream.getTxBuffer(), std::string("\xC8\nundefined\nH\t"));
 }
 
 TEST(PACKAGE_AND_COMMAND, without_crc) {
-    PackageAndCommandManager<2> command_manager(&enable_interrupts, &disable_interrupts, &print_function);
+    Package package(stream);
+    CommandManager<2> command_manager(package, &enable_interrupts, &disable_interrupts);
     command_manager.addCommand(&one);
     command_manager.addCommand(&two);
 
     command_manager.init();
-
     uint8_t myText[] = "one\n";
 
     for(unsigned char i : myText) {
-        command_manager.putChar(i);
+        stream.pushToRXBuffer(i);
     }
-    printedString = "";
-    command_manager.run();
-    EXPECT_EQ(printedString, std::string(""));
+
+    for(int i = 0; i < 100; i++) {
+        package.run();
+        command_manager.run();
+    }
+
+    EXPECT_EQ(stream.getTxBuffer(), std::string(""));
 }
 
 TEST(PACKAGE_AND_COMMAND, print_function_buffer) {
-    PackageAndCommandManager<2> command_manager(&enable_interrupts, &disable_interrupts, &print_function_buffer);
+    Package package(stream);
+    CommandManager<2> command_manager(package, &enable_interrupts, &disable_interrupts);
     command_manager.addCommand(&one);
     command_manager.addCommand(&two);
 
     command_manager.init();
 
     uint8_t myText[] = "three 123\n";
-    uint8_t myTextLength = sizeof(myText);
+    uint8_t myTextLength = strlen(reinterpret_cast<const char *>(myText));
     uint8_t txData [100] = {0};
 
     txData[0] = 0xc8;
@@ -167,12 +196,13 @@ TEST(PACKAGE_AND_COMMAND, print_function_buffer) {
     txData[myTextLength + 2] = Package::getFirstByte(crc);
     txData[myTextLength + 3] = Package::getSecondByte(crc);
 
-    printedString = "";
-
     for(uint8_t i = 0; i < (myTextLength + 4); i++) {
-        command_manager.putChar(txData[i]);
+        stream.pushToRXBuffer(txData[i]);
     }
 
-    command_manager.run();
-    EXPECT_EQ(printedString, std::string("\xC8\nundefined\nH\t"));
+    for(int i = 0; i < 100; i++) {
+        package.run();
+        command_manager.run();
+    }
+    EXPECT_EQ(stream.getTxBuffer(), std::string("\xC8\nundefined\nH\t"));
 }

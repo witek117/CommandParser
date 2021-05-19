@@ -1,9 +1,13 @@
 #pragma once
 
+#include "SimpleStream.h"
+#include "cyclicBuffer.hpp"
 #include <cstdint>
 #include <cstring>
 
-class Package {
+
+class Package : public SimpleStream {
+    SimpleStream &stream;
     const uint8_t startWord = 0xc8;
 
     uint8_t rxBufferLen = 0;
@@ -23,6 +27,28 @@ protected:
     uint8_t length = 0;
 
 public:
+    Package(SimpleStream &stream) : stream(stream) {
+
+    }
+
+    size_t available() override {
+        return availableData.getLength();
+    }
+
+    void write(uint8_t* data, uint16_t length) override {
+        size_t packetLength = createPackage(reinterpret_cast<char *>(data), length);
+        stream.write(packageTxBuffer, packetLength);
+    }
+
+    uint8_t read() override {
+        return availableData.get();
+    }
+
+    void flush() override {
+        availableData.flush();
+    }
+
+    CyclicBuffer_data <uint8_t, 100> availableData;
     uint8_t packageRxBuffer[100] = {0};
     uint8_t packageTxBuffer[100] = {0};
 
@@ -57,8 +83,16 @@ public:
         return (uint16_t)((uint16_t)firstByte | (uint16_t)(secondByte << 8u));
     }
 
-    virtual void useValidData() = 0;
+    // virtual void useValidData() = 0;
 
+    void run() {
+        size_t length = stream.available();
+        for(size_t i = 0; i < length; i++) {
+            putChar(stream.read());
+        }
+    }
+
+private:
     bool putChar(uint8_t c) {
         switch (state) {
             case State::START:
@@ -87,7 +121,7 @@ public:
                     receivedCrc = Package::toUint16(receivedCrc, c);
                     uint16_t myCrc = Package::getCRC(packageRxBuffer, 0, length);
                     if (myCrc == receivedCrc) {
-                        useValidData();
+                        availableData.write(packageRxBuffer, length);
                     }
                     state = State::START;
                 }
@@ -99,6 +133,7 @@ public:
         return false;
     }
 
+public:
     uint8_t createPackage(char* data, uint8_t length) {
         txPackageLength = 0;
         uint8_t offset = 0;

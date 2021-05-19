@@ -1,12 +1,11 @@
 #pragma once
 
+#include "SimpleStream.h"
 #include "cyclicBuffer.hpp"
 #include <functional>
 #include <utility>
 #include "Command.h"
 #include "Package.h"
-
-
 
 class PrintManager {
 protected:
@@ -42,26 +41,18 @@ public:
     static const char endChar = '\n';
 };
 
-class ReadManager {
-public:
-    CyclicBuffer_data<uint8_t , 50> bufferRx;
-    uint8_t commandsInBuffer = 0;
-
-    void putChar(char c) {
-        bufferRx.append(c);
-        if (c == PrintManager::endChar) {
-            commandsInBuffer++;
-        }
-    }
-};
-
 template <int size>
 class CommandManager : public PrintManager {
-public:
-    void(*printFunction)(uint8_t) = nullptr;
-    void(*printFunctionBuffer)(uint8_t*, uint16_t) = nullptr;
-    ReadManager reader;
-protected:
+    enum class READING_STATE : uint8_t {
+        CLEAR,
+        ADD_DATA,
+        FOUND_COMMAND,
+    };
+
+    READING_STATE state = READING_STATE::CLEAR;
+
+    SimpleStream& stream;
+
     void(*enableInterrupts)() = nullptr;
     void(*disableInterrupts)() = nullptr;
 
@@ -71,26 +62,16 @@ protected:
     uint8_t commandTitleLen = 0;
     uint8_t commandsCount = 0;
 public:
-    explicit CommandManager(void(*enableInterrupts)(), void(*disableInterrupts)(), void(*printFunction_m)(uint8_t) ) :
-            printFunction(printFunction_m), enableInterrupts(enableInterrupts), disableInterrupts(disableInterrupts) {
-    }
-
-    explicit CommandManager(void(*enableInterrupts)(), void(*disableInterrupts)(), void(*printFunction_m)(uint8_t*, uint16_t) ) :
-            printFunctionBuffer(printFunction_m), enableInterrupts(enableInterrupts), disableInterrupts(disableInterrupts) {
+    explicit CommandManager(SimpleStream& stream, void(*enableInterrupts)(), void(*disableInterrupts)()) :
+        stream(stream), enableInterrupts(enableInterrupts), disableInterrupts(disableInterrupts) {
     }
 
     inline void printData(const char *s, uint8_t length) override {
-        if (printFunctionBuffer) {
-            printFunctionBuffer((uint8_t*)s, (uint16_t)length);
-        } else {
-            for(uint8_t i = 0; i < length; i++) {
-                printFunction(s[i]);
-            }
-        }
+        stream.write((uint8_t *) s, length);
     }
 
     void getInfo() {
-        char infoBuffer[30] = {0};
+        char infoBuffer[100] = {0};
         for(uint8_t i = 0; i < commandsCount; i++) {
             memset(infoBuffer, 0, sizeof(infoBuffer));
             uint8_t len = commands[i]->getInfo(infoBuffer);
@@ -99,19 +80,41 @@ public:
         }
     }
 
-    void init() {}
+    void init() {
+        stream.flush();
+    }
 
     bool run() {
-        disableInterrupts();
-        uint8_t commandsInFifoLocal = reader.commandsInBuffer;
-        reader.commandsInBuffer = 0;
-        enableInterrupts();
+        static char cmd_buffer[100];
+        static char *data;
+        size_t length;
 
-        while (commandsInFifoLocal--) {
-            commandTitleLen = 0;
-            char* cmdBuffer = copyFromFifoToBuffer();
-            parse(cmdBuffer);
+        switch (state) {
+            case READING_STATE::CLEAR:
+                data = cmd_buffer;
+                state = READING_STATE::ADD_DATA;
+                break;
+            case READING_STATE::ADD_DATA:
+                length = stream.available();
+
+                for(size_t i = 0; i < length; i++) {
+                    *data = stream.read();
+                    if(*data == endChar) {
+                        *data = '\0';
+                        state = READING_STATE::FOUND_COMMAND;
+                        break;
+                    }
+                    data++;
+                }
+                break;
+
+            case READING_STATE::FOUND_COMMAND:
+                parse(cmd_buffer);
+                state = READING_STATE::CLEAR;
+                break;
+
         }
+
         return true;
     }
 
@@ -138,22 +141,6 @@ public:
         print("undefined\n");
     }
 
-    char *copyFromFifoToBuffer() {
-        static std::array<char, 100> cmd_buffer;
-        auto it = cmd_buffer.begin();
-        disableInterrupts();
-        while (reader.bufferRx.getSize() != 0 && it != cmd_buffer.end()) {
-            *it = reader.bufferRx.get();
-            if(*it == endChar) {
-                *it = '\0';
-                break;
-            }
-            it++;
-        }
-        enableInterrupts();
-        return cmd_buffer.data();
-    }
-
     void addCommand(Command* command) {
         if (commandsCount < maxCommandsCount) {
             commands[commandsCount] = command;
@@ -161,33 +148,3 @@ public:
         }
     }
 };
-
-template <int size>
-class PackageAndCommandManager : public Package, public CommandManager<size> {
-public:
-    PackageAndCommandManager(void(*enableInterrupts)(), void(*disableInterrupts)(), void(*printFunction_m)(uint8_t)) :
-        CommandManager<size>(enableInterrupts, disableInterrupts, printFunction_m) {
-    }
-
-    PackageAndCommandManager(void(*enableInterrupts)(), void(*disableInterrupts)(), void(*printFunction_m)(uint8_t*, uint16_t)) :
-            CommandManager<size>(enableInterrupts, disableInterrupts, printFunction_m) {
-    }
-
-    void useValidData() override {
-        for (uint8_t i = 0 ; i < length; i++) {
-            CommandManager<size>::reader.putChar(packageRxBuffer[i]);
-        }
-    }
-
-    void printData(const char *s, uint8_t length) override {
-        uint8_t packetLength = createPackage((char*)s, length);
-        if(CommandManager<size>::printFunctionBuffer) {
-            CommandManager<size>::printFunctionBuffer(packageTxBuffer, (uint16_t)packetLength);
-        } else {
-            for(uint8_t i = 0; i < packetLength; i++) {
-                CommandManager<size>::printFunction(packageTxBuffer[i]);
-            }
-        }
-    }
-};
-
