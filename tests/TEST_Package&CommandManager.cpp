@@ -18,24 +18,8 @@ static void two_callback(const char* data) {
 }
 static Stream stream;
 
-//static void print_function(uint8_t c) {
-//    printedString += c;
-//}
-
-//static void print_function_buffer(uint8_t* c, uint16_t len) {
-//    for(uint16_t i =0; i < len; i++) {
-//        printedString += c[i];
-//    }
-//}
-
 Command one("one", one_callback);
 Command two("two", two_callback);
-
-//class TestPackage : public Package {
-//    void useValidData() {
-//
-//    }
-//};
 
 TEST(PACKAGE_AND_COMMAND, create) {
     Package package(stream);
