@@ -31,7 +31,7 @@ public:
 
     }
 
-    size_t available() override {
+    uint16_t available() override {
         return availableData.getLength();
     }
 

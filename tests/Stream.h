@@ -12,7 +12,7 @@ class Stream : public SimpleStream {
     std::vector<uint8_t> txData;
 
 public:
-    size_t available() override {
+    uint16_t available() override {
         return rxData.size();
     }
 
