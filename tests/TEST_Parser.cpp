@@ -39,3 +39,43 @@ TEST(PARSER, value_float) {
     auto [x3] = parser::get<int>(data3);
     EXPECT_EQ(x3, 2345);
 }
+
+TEST(PARSER, valueRawUint8) {
+    const char *data0 = "\0\x02";
+    auto x0 = parser::getRaw<uint8_t>(data0);
+    EXPECT_EQ(x0, 2);
+
+    const char *data1 = "\x80 ";
+    auto x1 = parser::getRaw<uint8_t>(data1);
+    EXPECT_EQ(x1, 10);
+}
+
+TEST(PARSER, valueRawInt8) {
+    const char *data0 = "\0\xFE";
+    auto x0 = parser::getRaw<int8_t>(data0);
+    EXPECT_EQ(x0, -2);
+
+    const char *data1 = "\x80 ";
+    auto x1 = parser::getRaw<int8_t>(data1);
+    EXPECT_EQ(x1, 10);
+}
+
+TEST(PARSER, valueRawUint16) {
+    const char *data0 = "\0\x02\x02";
+    auto x0 = parser::getRaw<uint16_t>(data0);
+    EXPECT_EQ(x0, 514);
+
+    const char *data1 = "\xC0  ";
+    auto x1 = parser::getRaw<uint16_t>(data1);
+    EXPECT_EQ(x1, 2570);
+}
+
+TEST(PARSER, valueRawUint32) {
+    const char *data0 = "\0\x02\x02\x02\x02";
+    auto x0 = parser::getRaw<uint32_t>(data0);
+    EXPECT_EQ(x0, 33686018);
+
+    const char *data1 = "\xF0    ";
+    auto x1 = parser::getRaw<uint32_t>(data1);
+    EXPECT_EQ(x1, 168430090);
+}

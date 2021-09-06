@@ -9,6 +9,4 @@ public:
     virtual uint8_t read() = 0;
     virtual void flush() = 0;
     virtual void init() { }
-//    virtual uint8_t read() = 0;
-
 };
