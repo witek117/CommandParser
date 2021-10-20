@@ -16,6 +16,58 @@ void callback1(const char* data) {
     data_len++;
 }
 
+static std::string printedString;
+static void print_function(uint8_t c) {
+    printedString += c;
+}
+
+static void print_function_buffer(uint8_t* c, uint16_t len) {
+    for(uint16_t i =0; i < len; i++) {
+        printedString += c[i];
+    }
+}
+
+using ::testing::StrictMock;
+
+class CommandBaseMock : public Command {
+public:
+    static int callbackTested;
+
+    static void callback(const char *) {
+        callbackTested++;
+    }
+
+    explicit CommandBaseMock(const char* name) : Command(name, callback) { }
+};
+
+int CommandBaseMock::callbackTested = 0;
+
+TEST (COMMAND_MANAGER, basic) {
+    printedString = "";
+    CommandBaseMock jeden("jeden");
+    CommandBaseMock dwa("dwa");
+
+    CommandManager<2> command_manager(stream, &enable_interrupts, &disable_interrupts);
+
+    command_manager.addCommand(&jeden);
+    command_manager.addCommand(&dwa);
+
+    command_manager.init();
+
+    const char * data = "jeden sdfg\ndwa 2345\n";
+
+    for (size_t i =0; i < strlen(data); i++) {
+        stream.pushToRXBuffer(data[i]);
+    }
+
+    for(int i = 0; i < 100; i++) {
+        command_manager.run();
+    }
+
+    EXPECT_EQ(printedString, std::string(""));
+    EXPECT_EQ(CommandBaseMock::callbackTested, 2);
+}
+
 TEST (COMMAND_MANAGER, multiCommands) {
     Command jeden("jeden", callback1);
     Command dwa("dwa", callback1);

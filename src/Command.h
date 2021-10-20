@@ -1,5 +1,6 @@
 #pragma once
 
+#include "CommandSender.h"
 #include <utility>
 #include <tuple>
 #include <array>
@@ -49,6 +50,62 @@ namespace parser {
         }
         return return_data;
     }
+
+    template<typename T>
+    T getRaw (const char * data) {
+        T return_data;
+
+        if constexpr (std::is_same<T, uint8_t>() || (std::is_same<T, int8_t>())) {
+            if (*data == static_cast<char>(RawTransmitCommand::newLineAtIndex::ZERO)) {
+                return_data = static_cast<T>(RawTransmitCommand::commandEnd);
+            } else {
+                return_data = static_cast<T>(data[1]);
+            }
+        } else if constexpr (std::is_same<uint16_t, T>() || std::is_same<int16_t, T>()) {
+            uint8_t tempData[2];
+            if (((uint8_t)data[0]) & static_cast<uint8_t>(RawTransmitCommand::newLineAtIndex::ZERO)) {
+                tempData[0] =  static_cast<char>(RawTransmitCommand::commandEnd);
+            } else {
+                tempData[0] = static_cast<uint8_t>(data[1]);
+            }
+
+            if (((uint8_t)data[0]) & static_cast<uint8_t>(RawTransmitCommand::newLineAtIndex::ONE)) {
+                tempData[1] =  static_cast<char>(RawTransmitCommand::commandEnd);
+            } else {
+                tempData[1] = static_cast<uint8_t>(data[2]);
+            }
+
+            memcpy(&return_data, tempData, 2);
+        } else if constexpr (std::is_same<uint32_t, T>() || std::is_same<int32_t, T>()) {
+            uint8_t tempData[4];
+            if (((uint8_t)data[0]) & static_cast<uint8_t>(RawTransmitCommand::newLineAtIndex::ZERO)) {
+                tempData[0] =  static_cast<char>(RawTransmitCommand::commandEnd);
+            } else {
+                tempData[0] = static_cast<uint8_t>(data[1]);
+            }
+
+            if (((uint8_t)data[0]) & static_cast<uint8_t>(RawTransmitCommand::newLineAtIndex::ONE)) {
+                tempData[1] =  static_cast<char>(RawTransmitCommand::commandEnd);
+            } else {
+                tempData[1] = static_cast<uint8_t>(data[2]);
+            }
+
+            if (((uint8_t)data[0]) & static_cast<uint8_t>(RawTransmitCommand::newLineAtIndex::TWO)) {
+                tempData[2] =  static_cast<char>(RawTransmitCommand::commandEnd);
+            } else {
+                tempData[2] = static_cast<uint8_t>(data[3]);
+            }
+
+            if (((uint8_t)data[0]) & static_cast<uint8_t>(RawTransmitCommand::newLineAtIndex::THREE)) {
+                tempData[3] =  static_cast<char>(RawTransmitCommand::commandEnd);
+            } else {
+                tempData[3] = static_cast<uint8_t>(data[4]);
+            }
+
+            memcpy(&return_data, tempData, 4);
+        }
+        return return_data;
+    }
 }
 
 class CommandTemplate {
@@ -87,7 +144,7 @@ public:
     }
 };
 
-class Command : public CommandTemplate{
+class Command : public CommandTemplate {
     void (*handler)(const char* data) = nullptr;
     inline void callback_handler(const char* data) override {
         handler(data);
@@ -117,6 +174,23 @@ public:
     }
 
     Command_Void(const char* name, void (*handler)(), bool shouldReturnValue = false) : CommandTemplate(name, shouldReturnValue), handler(handler) { }
+};
+
+template<class T0>
+class RawCommand : public CommandTemplate{
+    void (*handler)(T0) = nullptr;
+    inline void callback_handler(const char* data) override {
+        auto [t0] = parser::getRaw<T0>(data);
+        handler(t0);
+    }
+
+public:
+    uint8_t getValuesInfo(char* buffer) override {
+        buffer[0] = typeid(T0).name()[0];
+        return 1;
+    }
+
+    RawCommand(const char* name, void (*handler)(T0), bool shouldReturnValue = false) : CommandTemplate(name, shouldReturnValue), handler(handler) { }
 };
 
 template<class T0>

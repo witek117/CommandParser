@@ -9,13 +9,16 @@ static void enable_interrupts() {}
 static void disable_interrupts() {}
 static std::string printedString;
 static int myInt = 0;
+
 static void one_callback(const char* data) {
     (void) data;
     printedString = "one";
 }
+
 static void two_callback(const char* data) {
     myInt = parser::parse<int>(data);
 }
+
 static Stream stream;
 
 Command one("one", one_callback);
