@@ -1,72 +1,23 @@
 #include "Stream.h"
-#include "command_manager.h"
+#include "CommandManager.h"
 
 #include <gmock/gmock.h>
 
 static Stream stream;
 
 static void enable_interrupts() {}
+
 static void disable_interrupts() {}
 
 char data_table[3][100];
 
-void callback1(const char* data) {
+void callback1(const char *data) {
     static int data_len = 0;
     strcpy(data_table[data_len], data);
     data_len++;
 }
 
-static std::string printedString;
-static void print_function(uint8_t c) {
-    printedString += c;
-}
-
-static void print_function_buffer(uint8_t* c, uint16_t len) {
-    for(uint16_t i =0; i < len; i++) {
-        printedString += c[i];
-    }
-}
-
 using ::testing::StrictMock;
-
-class CommandBaseMock : public Command {
-public:
-    static int callbackTested;
-
-    static void callback(const char *) {
-        callbackTested++;
-    }
-
-    explicit CommandBaseMock(const char* name) : Command(name, callback) { }
-};
-
-int CommandBaseMock::callbackTested = 0;
-
-TEST (COMMAND_MANAGER, basic) {
-    printedString = "";
-    CommandBaseMock jeden("jeden");
-    CommandBaseMock dwa("dwa");
-
-    CommandManager<2> command_manager(stream, &enable_interrupts, &disable_interrupts);
-
-    command_manager.addCommand(&jeden);
-    command_manager.addCommand(&dwa);
-
-    command_manager.init();
-
-    const char * data = "jeden sdfg\ndwa 2345\n";
-
-    for (size_t i =0; i < strlen(data); i++) {
-        stream.pushToRXBuffer(data[i]);
-    }
-
-    for(int i = 0; i < 100; i++) {
-        command_manager.run();
-    }
-
-    EXPECT_EQ(printedString, std::string(""));
-    EXPECT_EQ(CommandBaseMock::callbackTested, 2);
-}
 
 TEST (COMMAND_MANAGER, multiCommands) {
     Command jeden("jeden", callback1);
@@ -78,13 +29,13 @@ TEST (COMMAND_MANAGER, multiCommands) {
 
     command_manager.init();
 
-    const char * data = "jeden sdfg\ndwa 2345\n";
+    const char *data = "jeden sdfg\ndwa 2345\n";
 
-    for (size_t i =0; i < strlen(data); i++) {
+    for (size_t i = 0; i < strlen(data); i++) {
         stream.pushToRXBuffer(data[i]);
     }
 
-    for(uint8_t i = 0; i < 6;i++) {
+    for (uint8_t i = 0; i < 6; i++) {
         command_manager.run();
     }
 
@@ -96,8 +47,8 @@ TEST (COMMAND_MANAGER, multiCommands) {
 
 float ff1, ff2;
 
-void twoFloats(const char* data) {
-    auto [f1, f2] = parser::get<float, float>(data);
+void twoFloats(const char *data) {
+    auto[f1, f2] = parser::get<float, float>(data);
     ff1 = f1;
     ff2 = f2;
 }
@@ -110,38 +61,39 @@ TEST(COMMAND_MANAGER, twoFloats) {
 
     command_manager.init();
 
-    const char * data = "floats 2.456 3.654\n";
+    const char *data = "floats 2.456 3.654\n";
 
-    for (size_t i =0; i < strlen(data); i++) {
+    for (size_t i = 0; i < strlen(data); i++) {
         stream.pushToRXBuffer(data[i]);
     }
 
-    for(uint8_t i = 0; i < 6;i++) {
+    for (uint8_t i = 0; i < 6; i++) {
         command_manager.run();
     }
 
-    EXPECT_EQ(ff1, (float)(2.456));
-    EXPECT_EQ(ff2, (float)(3.654));
+    EXPECT_EQ(ff1, (float) (2.456));
+    EXPECT_EQ(ff2, (float) (3.654));
     EXPECT_EQ(stream.getTxBuffer(), std::string(""));
 }
 
 int functionNUmber = 0;
-void question1(const char * data) {
+
+void question1(const char *data) {
     (void) data;
     functionNUmber = 1;
 }
 
-void question2(const char * data) {
+void question2(const char *data) {
     (void) data;
     functionNUmber = 2;
 }
 
-void question3(const char * data) {
+void question3(const char *data) {
     (void) data;
     functionNUmber = 3;
 }
 
-void question4(const char * data) {
+void question4(const char *data) {
     (void) data;
     functionNUmber = 4;
 }
@@ -160,22 +112,22 @@ TEST(COMMAND_MANAGER, question) {
 
     command_manager.init();
 
-    const char * data1 = "t 1\n";
-    for (size_t i =0; i < strlen(data1); i++) {
+    const char *data1 = "t 1\n";
+    for (size_t i = 0; i < strlen(data1); i++) {
         stream.pushToRXBuffer(data1[i]);
     }
 
-    for(uint8_t i = 0; i < 6;i++) {
+    for (uint8_t i = 0; i < 6; i++) {
         command_manager.run();
     }
     EXPECT_EQ(functionNUmber, 3);
 
-    const char * data2 = "t?\n";
-    for (size_t i =0; i < strlen(data2); i++) {
+    const char *data2 = "t?\n";
+    for (size_t i = 0; i < strlen(data2); i++) {
         stream.pushToRXBuffer(data2[i]);
     }
 
-    for(uint8_t i = 0; i < 6;i++) {
+    for (uint8_t i = 0; i < 6; i++) {
         command_manager.run();
     }
     EXPECT_EQ(functionNUmber, 1);
@@ -185,7 +137,7 @@ TEST(COMMAND_MANAGER, undefined) {
     CommandManager<1> command_manager(stream, &enable_interrupts, &disable_interrupts);
 
     command_manager.init();
-    for(uint8_t i = 0; i < 6;i++) {
+    for (uint8_t i = 0; i < 6; i++) {
         command_manager.run();
     }
 
@@ -195,12 +147,12 @@ TEST(COMMAND_MANAGER, undefined) {
     command_manager.addCommand(&q4);
 
     stream.flush();
-    const char * data1 = "t 1\n";
-    for (size_t i =0; i < strlen(data1); i++) {
+    const char *data1 = "t 1\n";
+    for (size_t i = 0; i < strlen(data1); i++) {
         stream.pushToRXBuffer(data1[i]);
     }
 
-    for(uint8_t i = 0; i < 6;i++) {
+    for (uint8_t i = 0; i < 6; i++) {
         command_manager.run();
     }
     EXPECT_EQ(stream.getTxBuffer(), std::string("undefined\n"));
@@ -210,16 +162,16 @@ TEST(COMMAND_MANAGER, print) {
     CommandManager<1> command_manager(stream, &enable_interrupts, &disable_interrupts);
     command_manager.init();
 
-    command_manager.print((uint16_t)123);
+    command_manager.print((uint16_t) 123);
     EXPECT_EQ(stream.getTxBuffer(), std::string("123"));
 
-    command_manager.print((uint32_t)123);
+    command_manager.print((uint32_t) 123);
     EXPECT_EQ(stream.getTxBuffer(), std::string("123"));
 
-    command_manager.print((int16_t)123);
+    command_manager.print((int16_t) 123);
     EXPECT_EQ(stream.getTxBuffer(), std::string("123"));
 
-    command_manager.print((float)123);
+    command_manager.print((float) 123);
     EXPECT_EQ(stream.getTxBuffer(), std::string("123.00"));
 
     command_manager.print("123");
@@ -232,22 +184,23 @@ TEST(COMMAND_MANAGER, print) {
     EXPECT_EQ(stream.getTxBuffer(), std::string("12"));
 }
 
+void info0Callback() {}
 
-void info0Callback() { }
-void info1Callback() { }
-void info2Callback() { }
+void info1Callback() {}
+
+void info2Callback() {}
 
 TEST(COMMAND_MANAGER, getInfoVoid) {
     CommandManager<3> command_manager(stream, &enable_interrupts, &disable_interrupts);
     command_manager.init();
 
-    Command_Void info0("info0", info0Callback);
-    Command_Void info1("info1", info1Callback);
-    Command_Void info2("info2", info2Callback);
+    Command info0("info0", info0Callback);
+    Command info1("info1", info1Callback);
+    Command info2("info2", info2Callback);
 
-    command_manager.addCommand(reinterpret_cast<Command *>(&info0));
-    command_manager.addCommand(reinterpret_cast<Command *>(&info1));
-    command_manager.addCommand(reinterpret_cast<Command *>(&info2));
+    command_manager.addCommand(&info0);
+    command_manager.addCommand(&info1);
+    command_manager.addCommand(&info2);
 
     std::string compareString;
 
@@ -259,12 +212,15 @@ TEST(COMMAND_MANAGER, getInfoVoid) {
     EXPECT_TRUE(stream.getTxBuffer() == compareString);
 }
 
-void intCallback(int data) { (void)data; }
-void floatCallback(float data) { (void)data; }
-void doubleCallback(double data) { (void)data; }
-void charCallback(char data) { (void)data; }
-void charPointerCallback(const char* data) { (void)data; }
+void intCallback(int data) { (void) data; }
 
+void floatCallback(float data) { (void) data; }
+
+void doubleCallback(double data) { (void) data; }
+
+void charCallback(char data) { (void) data; }
+
+void charPointerCallback(const char *data) { (void) data; }
 
 TEST(COMMAND_MANAGER, getInfoDifferentValues) {
     CommandManager<5> command_manager(stream, &enable_interrupts, &disable_interrupts);
@@ -274,21 +230,21 @@ TEST(COMMAND_MANAGER, getInfoDifferentValues) {
     char valuesInfo[5][3] = {"i", "f", "d", "c", "c*"};
     char returnValues[5][3] = {"t", "f", "t", "f", "f"};
 
-    Command_T1<int>     info0(names[0], intCallback, true);
-    Command_T1<float>   info1(names[1], floatCallback, false);
-    Command_T1<double>  info2(names[2], doubleCallback, true);
-    Command_T1<char>    info3(names[3], charCallback);
-    Command             info4(names[4], charPointerCallback);
+    Command info0(names[0], intCallback, true);
+    Command info1(names[1], floatCallback, false);
+    Command info2(names[2], doubleCallback, true);
+    Command info3(names[3], charCallback);
+    Command info4(names[4], charPointerCallback);
 
-    command_manager.addCommand(reinterpret_cast<Command *>(&info0));
-    command_manager.addCommand(reinterpret_cast<Command *>(&info1));
-    command_manager.addCommand(reinterpret_cast<Command *>(&info2));
-    command_manager.addCommand(reinterpret_cast<Command *>(&info3));
-    command_manager.addCommand(reinterpret_cast<Command *>(&info4));
+    command_manager.addCommand(&info0);
+    command_manager.addCommand(&info1);
+    command_manager.addCommand(&info2);
+    command_manager.addCommand(&info3);
+    command_manager.addCommand(&info4);
 
     std::string compareString;
 
-    for(int i = 0; i < 5; i++) {
+    for (int i = 0; i < 5; i++) {
         compareString += names[i];
         compareString += '\t';
         compareString += valuesInfo[i];
@@ -296,16 +252,22 @@ TEST(COMMAND_MANAGER, getInfoDifferentValues) {
         compareString += returnValues[i];
         compareString += '\n';
     }
-
     command_manager.getInfo();
-    EXPECT_TRUE(stream.getTxBuffer() == compareString);
 
-    const char* data = "?\n";
-    for (size_t i =0; i < strlen(data); i++) {
+    std::string originalString = stream.getTxBuffer();
+
+    EXPECT_EQ(originalString.size(), compareString.size());
+
+    for (int i = 0; i < originalString.size(); i++) {
+        EXPECT_EQ(originalString[i], compareString[i]) << (int) i << std::endl;
+    }
+
+    const char *data = "?\n";
+    for (size_t i = 0; i < strlen(data); i++) {
         stream.pushToRXBuffer(data[i]);
     }
 
-    for(uint8_t i = 0; i < 6;i++) {
+    for (uint8_t i = 0; i < 6; i++) {
         command_manager.run();
     }
     EXPECT_TRUE(stream.getTxBuffer() == compareString);

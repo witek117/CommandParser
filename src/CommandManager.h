@@ -2,46 +2,12 @@
 
 #include "SimpleStream.h"
 #include "cyclicBuffer.hpp"
-#include <functional>
 #include <utility>
 #include "Command.h"
-#include "Package.h"
+#include "PrintManager.h"
 
-class PrintManager {
-protected:
-    char buff[10] = {0};
-    virtual void printData(const char *s, uint8_t length) = 0;
-public:
-    inline void print(const char *s, uint8_t length) {
-        printData(s,length);
-    }
 
-    size_t print(const char s[]) {
-        size_t length = strlen(s);
-        printData(s, length);
-        return length;
-    }
-
-    void print(uint16_t value) {
-        printData(buff, sprintf(buff, "%d", value));
-    }
-
-    void print(uint32_t value) {
-        printData(buff, sprintf(buff, "%lu", value));
-    }
-
-    void print(int16_t value) {
-        printData(buff, sprintf(buff, "%d", value));
-    }
-
-    void print(float value) {
-        printData(buff, sprintf(buff, "%.2f", value));
-    }
-
-    static const char endChar = '\n';
-};
-
-template <int size>
+template<int size>
 class CommandManager : public PrintManager {
     enum class READING_STATE : uint8_t {
         CLEAR,
@@ -51,19 +17,20 @@ class CommandManager : public PrintManager {
 
     READING_STATE state = READING_STATE::CLEAR;
 
-    SimpleStream& stream;
+    SimpleStream &stream;
 
-    void(*enableInterrupts)() = nullptr;
-    void(*disableInterrupts)() = nullptr;
+    void (*enableInterrupts)() = nullptr;
+
+    void (*disableInterrupts)() = nullptr;
 
     static const uint8_t maxCommandsCount = size;
-    Command *commands[maxCommandsCount] = {0};
+    CommandTemplate *commands[maxCommandsCount] = {0};
 
     uint8_t commandTitleLen = 0;
     uint8_t commandsCount = 0;
 public:
-    explicit CommandManager(SimpleStream& stream, void(*enableInterrupts)(), void(*disableInterrupts)()) :
-        stream(stream), enableInterrupts(enableInterrupts), disableInterrupts(disableInterrupts) {
+    CommandManager(SimpleStream &stream, void(*enableInterrupts)(), void(*disableInterrupts)()) :
+            stream(stream), enableInterrupts(enableInterrupts), disableInterrupts(disableInterrupts) {
     }
 
     inline void printData(const char *s, uint8_t length) override {
@@ -72,7 +39,7 @@ public:
 
     void getInfo() {
         char infoBuffer[100] = {0};
-        for(uint8_t i = 0; i < commandsCount; i++) {
+        for (uint8_t i = 0; i < commandsCount; i++) {
             memset(infoBuffer, 0, sizeof(infoBuffer));
             uint8_t len = commands[i]->getInfo(infoBuffer);
             infoBuffer[len++] = '\n';
@@ -97,9 +64,9 @@ public:
             case READING_STATE::ADD_DATA:
                 length = stream.available();
 
-                for(size_t i = 0; i < length; i++) {
+                for (size_t i = 0; i < length; i++) {
                     *data = stream.read();
-                    if(*data == endChar) {
+                    if (*data == endChar) {
                         *data = '\0';
                         state = READING_STATE::FOUND_COMMAND;
                         break;
@@ -118,8 +85,8 @@ public:
         return true;
     }
 
-    void parse(char* data) {
-        for (uint8_t i = 0; i < 20; i ++) {
+    void parse(char *data) {
+        for (uint8_t i = 0; i < 20; i++) {
             if (data[i] == ' ' || data[i] == '\0') {
                 data[i] = '\0';
                 commandTitleLen = i;
@@ -127,8 +94,8 @@ public:
             }
         }
 
-        for(uint8_t i = 0; i < commandsCount; i++) {
-            if(commands[i]->parse(data, commandTitleLen)) {
+        for (uint8_t i = 0; i < commandsCount; i++) {
+            if (commands[i]->parse(data, commandTitleLen)) {
                 return;
             }
         }
@@ -141,7 +108,7 @@ public:
         print("undefined\n");
     }
 
-    void addCommand(Command* command) {
+    void addCommand(CommandTemplate *command) {
         if (commandsCount < maxCommandsCount) {
             commands[commandsCount] = command;
             commandsCount++;

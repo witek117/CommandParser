@@ -23,10 +23,10 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     add_executable(CommandParser_unitTests
         tests/TEST_Command.cpp
         tests/TEST_StreamCommandManager.cpp
-        tests/TEST_Package.cpp
+#        tests/TEST_Package.cpp
         tests/TEST_Parser.cpp
-        tests/TEST_PackageAndCommandManager.cpp
-        tests/TEST_CommandSender.cpp
+#        tests/TEST_PackageAndCommandManager.cpp
+#        tests/TEST_CommandSender.cpp
     )
 
     target_link_libraries(
@@ -39,7 +39,8 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     include(GoogleTest)
     gtest_discover_tests(CommandParser_unitTests)
 
-    SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -Werror=unused-parameter")
+    SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS}  -fno-rtti")
+#    -Werror=unused-parameter
 else()
     SET(ONLY_LIBRARY TRUE)
     add_subdirectory(src)

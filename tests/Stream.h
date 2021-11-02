@@ -1,7 +1,5 @@
 #pragma once
 
-
-
 #include "SimpleStream.h"
 #include <vector>
 #include <string>
@@ -16,7 +14,7 @@ public:
         return rxData.size();
     }
 
-    void write(uint8_t* data, uint16_t length) override {
+    void write(uint8_t *data, uint16_t length) override {
         for (uint16_t i = 0; i < length; ++i) {
             txData.push_back(data[i]);
         }
@@ -35,7 +33,7 @@ public:
     std::string getTxBuffer() {
         std::string data;
         while (!txData.empty()) {
-            data += (char)(txData.front());
+            data += (char) (txData.front());
             txData.erase(txData.begin());
         }
         return data;
