@@ -75,8 +75,7 @@ public:
         return offset;
     }
 
-    CommandTemplate(const char *name, bool shouldReturnValue) : name(name), name_len(strlen(name)),
-                                                                shouldReturnValue(shouldReturnValue) {}
+    CommandTemplate(const char *name, bool shouldReturnValue) : name(name), name_len(strlen(name)), shouldReturnValue(shouldReturnValue) {}
 
     bool parse(char *data, size_t data_len) {
         if (data_len != name_len) {
