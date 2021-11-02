@@ -1,11 +1,13 @@
 #pragma once
+#include <cstdint>
+#include <cstring>
+#include <cmath>
 
 class PrintManager {
 protected:
     static const uint8_t BUFF_SIZE = 15;
     uint8_t i = 0;
     char buff[BUFF_SIZE] = {0};
-
     virtual void printData(const char *s, uint8_t length) = 0;
 
 public:
