@@ -1,13 +1,8 @@
 #include "Stream.h"
 #include "CommandManager.h"
-
 #include <gmock/gmock.h>
 
 static Stream stream;
-
-static void enable_interrupts() {}
-
-static void disable_interrupts() {}
 
 char data_table[3][100];
 
@@ -23,7 +18,7 @@ TEST (COMMAND_MANAGER, multiCommands) {
     Command jeden("jeden", callback1);
     Command dwa("dwa", callback1);
 
-    CommandManager<2> command_manager(stream, &enable_interrupts, &disable_interrupts);
+    CommandManager<2> command_manager(stream);
     command_manager.addCommand(&jeden);
     command_manager.addCommand(&dwa);
 
@@ -56,7 +51,7 @@ void twoFloats(const char *data) {
 TEST(COMMAND_MANAGER, twoFloats) {
     Command floats("floats", twoFloats);
 
-    CommandManager<1> command_manager(stream, &enable_interrupts, &disable_interrupts);
+    CommandManager<1> command_manager(stream);
     command_manager.addCommand(&floats);
 
     command_manager.init();
@@ -104,7 +99,7 @@ TEST(COMMAND_MANAGER, question) {
     Command q3("t", question3);
     Command q4("n", question4);
 
-    CommandManager<4> command_manager(stream, &enable_interrupts, &disable_interrupts);
+    CommandManager<4> command_manager(stream);
     command_manager.addCommand(&q1);
     command_manager.addCommand(&q2);
     command_manager.addCommand(&q3);
@@ -134,7 +129,7 @@ TEST(COMMAND_MANAGER, question) {
 }
 
 TEST(COMMAND_MANAGER, undefined) {
-    CommandManager<1> command_manager(stream, &enable_interrupts, &disable_interrupts);
+    CommandManager<1> command_manager(stream);
 
     command_manager.init();
     for (uint8_t i = 0; i < 6; i++) {
@@ -159,7 +154,7 @@ TEST(COMMAND_MANAGER, undefined) {
 }
 
 TEST(COMMAND_MANAGER, print) {
-    CommandManager<1> command_manager(stream, &enable_interrupts, &disable_interrupts);
+    CommandManager<1> command_manager(stream);
     command_manager.init();
 
     command_manager.print((uint16_t) 123);
@@ -191,7 +186,7 @@ void info1Callback() {}
 void info2Callback() {}
 
 TEST(COMMAND_MANAGER, getInfoVoid) {
-    CommandManager<3> command_manager(stream, &enable_interrupts, &disable_interrupts);
+    CommandManager<3> command_manager(stream);
     command_manager.init();
 
     Command info0("info0", info0Callback);
@@ -223,7 +218,7 @@ void charCallback(char data) { (void) data; }
 void charPointerCallback(const char *data) { (void) data; }
 
 TEST(COMMAND_MANAGER, getInfoDifferentValues) {
-    CommandManager<5> command_manager(stream, &enable_interrupts, &disable_interrupts);
+    CommandManager<5> command_manager(stream);
     command_manager.init();
 
     char names[5][10] = {"info0", "info1", "info2", "info3", "info4"};

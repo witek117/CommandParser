@@ -6,7 +6,6 @@
 #include "Command.h"
 #include "PrintManager.h"
 
-
 template<int size>
 class CommandManager : public PrintManager {
     enum class READING_STATE : uint8_t {
@@ -19,18 +18,13 @@ class CommandManager : public PrintManager {
 
     SimpleStream &stream;
 
-    void (*enableInterrupts)() = nullptr;
-
-    void (*disableInterrupts)() = nullptr;
-
     static const uint8_t maxCommandsCount = size;
     CommandTemplate *commands[maxCommandsCount] = {0};
 
     uint8_t commandTitleLen = 0;
     uint8_t commandsCount = 0;
 public:
-    CommandManager(SimpleStream &stream, void(*enableInterrupts)(), void(*disableInterrupts)()) :
-            stream(stream), enableInterrupts(enableInterrupts), disableInterrupts(disableInterrupts) {
+    CommandManager(SimpleStream &stream) : stream(stream) {
     }
 
     inline void printData(const char *s, uint8_t length) override {
