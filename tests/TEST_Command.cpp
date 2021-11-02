@@ -3,19 +3,19 @@
 #include <gmock/gmock.h>
 #include <vector>
 
-
 static char buffer[20] = {0};
 static int int0 = 0;
 static float float0 = 0.0f;
 static char char0 = '0';
+
 void oneInt(int data) {
     int0 = data;
 }
 
 TEST(COMMAND, commandInt) {
-    Command_T1<int> myInt("myInt", oneInt);
+    Command myInt("myInt", oneInt);
 
-    myInt.parse((char*)"myInt 5", 5);
+    myInt.parse((char *) "myInt 5", 5);
 
     EXPECT_EQ(int0, 5);
 
@@ -31,9 +31,9 @@ void intFloat(int data0, float data1) {
 }
 
 TEST(COMMAND, commandIntFloat) {
-    Command_T2<int, float> myInt("myInt", intFloat);
+    Command myInt("myInt", intFloat);
 
-    myInt.parse((char*)"myInt 5 2.54", 5);
+    myInt.parse((char *) "myInt 5 2.54", 5);
 
     EXPECT_EQ(int0, 5);
     EXPECT_EQ(float0, 2.54f);
@@ -51,9 +51,9 @@ void intFloatChar(int data0, float data1, char data2) {
 }
 
 TEST(COMMAND, commandIntFloatChar) {
-    Command_T3<int, float, char> myInt("myInt", intFloatChar);
+    Command myInt("myInt", intFloatChar);
 
-    myInt.parse((char*)"myInt 5 2.54 i", 5);
+    myInt.parse((char *) "myInt 5 2.54 i", 5);
 
     EXPECT_EQ(int0, 5);
     EXPECT_EQ(float0, 2.54f);
@@ -64,12 +64,13 @@ TEST(COMMAND, commandIntFloatChar) {
     EXPECT_STREQ(buffer, "ifc");
     EXPECT_EQ(len, 3);
 }
+
 void doubleCallbakc(double d0, double d1, double d2) {
     d0 = d1 = d2;
 }
 
 TEST(COMMAND, commandDouble) {
-    Command_T3<double, double, double> doubleCommand("myInt", doubleCallbakc);
+    Command doubleCommand("myInt", doubleCallbakc);
 
     memset(buffer, 0, sizeof(buffer));
     uint8_t len = doubleCommand.getValuesInfo(buffer);
@@ -77,14 +78,14 @@ TEST(COMMAND, commandDouble) {
     EXPECT_EQ(len, 3);
 }
 
-void myCommandCallback(const char* data) {
+void myCommandCallback(const char *data) {
     strcpy(buffer, data);
 }
 
 TEST(COMMAND, commandChar) {
     memset(buffer, 0, sizeof(buffer));
     Command myCommand("myCommand", myCommandCallback);
-    myCommand.parse((char*)"myCommand command", 9);
+    myCommand.parse((char *) "myCommand command", 9);
     EXPECT_STREQ(buffer, "command");
 
     memset(buffer, 0, sizeof(buffer));
@@ -93,15 +94,14 @@ TEST(COMMAND, commandChar) {
     EXPECT_EQ(len, 2);
 }
 
-
 void voidCallback() {
     int0 = 10;
 }
 
 TEST(COMMAND, commandVoid) {
     int0 = 0;
-    Command_Void myCommand("myCommand", voidCallback);
-    myCommand.parse((char*)"myCommand", 9);
+    Command myCommand("myCommand", voidCallback);
+    myCommand.parse((char *) "myCommand", 9);
     EXPECT_EQ(int0, 10);
 
     memset(buffer, 0, sizeof(buffer));
@@ -112,7 +112,7 @@ TEST(COMMAND, commandVoid) {
 
 TEST(COMMAND, getInfo) {
     int0 = 0;
-    Command_Void myCommand("myCommand", voidCallback);
+    Command myCommand("myCommand", voidCallback);
 
     memset(buffer, 0, sizeof(buffer));
     myCommand.getInfo(buffer);
