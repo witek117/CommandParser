@@ -28,7 +28,7 @@ private:
             buff[i] = '0';
         }
 
-        for (i; i > 0; i--) {
+        for (; i > 0; i--) {
             uint16_t modulo = value % 10;
             buff[i] = modulo + '0';
 

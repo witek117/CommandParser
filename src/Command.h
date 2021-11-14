@@ -110,6 +110,7 @@ class Command : public CommandTemplate {
         if constexpr(sizeof...(T) > 0) {
             call(handler, parser::get<T...>(data));
         } else {
+            (void) data;
             handler();
         }
     }
