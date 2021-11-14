@@ -33,3 +33,31 @@ command_manager.addCommand(&c3);
 // In loop run
 command_manager.run();
 ```
+
+stream can be UART peripherial from microcontroler
+
+Command 
+
+To call a callback function you can run:
+
+**Call callback0 function without arguments**
+```
+c0'\n'
+```
+
+**Call callback1 function with const char argument**
+```
+c1 hello world'\n'
+```
+
+**Call callback2 function with int argument**
+```
+c2 123'\n'
+```
+
+**Call callback3 function with float and int arguments**
+```
+c3 5.321 123'\n'
+```
+
+Each command have to be terminated with '\n' character 
