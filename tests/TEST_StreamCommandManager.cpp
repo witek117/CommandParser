@@ -1,5 +1,5 @@
 #include "Stream.h"
-#include "CommandManager.h"
+#include "CommandManager.hpp"
 #include <gmock/gmock.h>
 
 static Stream stream;
@@ -15,8 +15,8 @@ void callback1(const char *data) {
 using ::testing::StrictMock;
 
 TEST (COMMAND_MANAGER, multiCommands) {
-    Command jeden("jeden", callback1);
-    Command dwa("dwa", callback1);
+    Command jeden("jeden", "desc", callback1);
+    Command dwa("dwa", "desc", callback1);
 
     CommandManager<2> command_manager(stream);
     command_manager.addCommand(&jeden);

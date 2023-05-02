@@ -1,4 +1,4 @@
-#include <Command.h>
+#include <Command.hpp>
 #include <gmock/gmock.h>
 
 TEST(PARSER, value_float) {

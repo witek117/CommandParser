@@ -11,6 +11,10 @@ protected:
     virtual void printData(const char *s, uint8_t length) = 0;
 
 public:
+    inline void print (char s) { 
+        printData(&s, 1);
+    }
+
     inline void print(const char *s, uint8_t length) {
         printData(s, length);
     }
@@ -88,7 +92,4 @@ public:
         if (value < 0.0f) { addMinus(); }
         printBuffer();
     }
-
-    static const char endChar = '\n';
 };
-
