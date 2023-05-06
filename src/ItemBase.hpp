@@ -3,8 +3,6 @@
 #include <cstdint>
 #include <cstring>
 
-#include <iostream>
-
 class ItemBase {
   protected:
     const char* name;
@@ -13,18 +11,10 @@ class ItemBase {
     size_t      description_len = 0;
 
   public:
-    static size_t getLen(const char* data) {
-        for (uint8_t i = 0; i < 20; i++) {
-            if (data[i] == ' ' || data[i] == '\0') {
-                // data[i] = '\0';
-                return i;
-            }
+    const char* getNextArg(const char* data) {
+        if(data == nullptr) {
+            return nullptr;
         }
-        return 0;
-    }
-
-    const char* getNextArg(const char* data, uint8_t& argSize) {
-        argSize = 0;
         const char* ptr = data;
         while(true) {
             if (*ptr == '\0') {
@@ -36,6 +26,15 @@ class ItemBase {
             } else {
                 break;
             }
+        }
+        return ptr;
+    }
+
+    const char* getNextArg(const char* data, uint8_t& argSize) {
+        argSize = 0;
+        const char* ptr = getNextArg(data);
+        if(ptr == nullptr) {
+            return nullptr;
         }
 
         for (uint8_t i = 0; i < 20; i++) {

@@ -12,14 +12,14 @@ class CommandManager : public PrintManager {
         SKIPPING,
     };
 
-    READING_STATE           state           = READING_STATE::CLEAR;
-    CommandBase**           commands        = nullptr;
-    int                     size            = 0;
+    READING_STATE state           = READING_STATE::CLEAR;
+    CommandBase** commands        = nullptr;
+    int           size            = 0;
     SimpleStream* stream          = nullptr;
-    size_t                  commands_count  = 0;
-    size_t                  received_bytes  = 0;
-    uint8_t                 skipping_index  = 0;
-    char                    cmd_buffer[100] = {0};
+    size_t        commands_count  = 0;
+    size_t        received_bytes  = 0;
+    uint8_t       skipping_index  = 0;
+    char          cmd_buffer[100] = {0};
 
   public:
     CommandManager(CommandBase** commands, int size, SimpleStream* stream) : commands(commands), size(size), stream(stream) {

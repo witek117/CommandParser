@@ -12,13 +12,6 @@ TEST(ITEMBASE, match) {
     EXPECT_TRUE(item.match("new_item", 8, true));
 }
 
-TEST(ITEMBASE, getLen) {
-    ItemBase item("new_item", "description");
-
-    EXPECT_EQ(item.getLen("item"), 4);
-    EXPECT_EQ(item.getLen("item "), 4);
-}
-
 TEST(ITEMBASE, getNextArg) {
     ItemBase item("new_item", "description");
 

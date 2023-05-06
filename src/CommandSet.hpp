@@ -3,8 +3,6 @@
 #include "ItemBase.hpp"
 #include <array>
 
-#include <iostream>
-
 class CommandSetBase : public ItemBase {
   public:
     virtual uint8_t getInfo(char* buffer, size_t bufferLength) {
@@ -18,9 +16,9 @@ class CommandSetBase : public ItemBase {
     virtual bool parse(const char* data, size_t dataLen, uint8_t& parseDepth) {
         if (match(data, dataLen, true)) {
             parseDepth++;
-            uint8_t temporaryParseDepth = parseDepth;            
+            uint8_t temporaryParseDepth = parseDepth;
             data += dataLen;
-            uint8_t len = 0;
+            uint8_t     len = 0;
             const char* ptr = getNextArg(data, len);
             if (len == 0 || ptr == nullptr) {
                 return false;
@@ -45,7 +43,8 @@ class CommandSetBase : public ItemBase {
     }
 };
 
-template<int count> class CommandSet : public CommandSetBase {
+template<int count>
+class CommandSet : public CommandSetBase {
   public:
     using CommandContainer = std::array<ItemBase*, count>;
 
