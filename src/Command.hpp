@@ -4,14 +4,14 @@
 #include "parser.hpp"
 
 template<typename... T> class Command : public CommandBase {
-    void (*handler)(T...) = nullptr;
+    void (*handler)(ItemBase*, T...) = nullptr;
 
     inline void callback_handler(const char* data) override {
         (void)data;
         if constexpr (sizeof...(T) > 0) {
-            call(handler, parser::get<T...>(data));
+            call(handler, this, parser::get<T...>(data));
         } else {
-            handler();
+            handler(this);
         }
     }
 
@@ -54,6 +54,6 @@ template<typename... T> class Command : public CommandBase {
         return ' ';
     }
 
-    Command(const char* name, const char* description, void (*handler)(T...), bool shouldReturnValue = false) : CommandBase(name, description, shouldReturnValue, sizeof...(T)), handler(handler) {
+    Command(const char* name, const char* description, void (*handler)(ItemBase*, T...), bool shouldReturnValue = false) : CommandBase(name, description, shouldReturnValue, sizeof...(T)), handler(handler) {
     }
 };

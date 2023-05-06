@@ -14,10 +14,12 @@ void oneInt(int data) {
 
 TEST(COMMAND, commandInt) {
     Command myInt("myInt", "desc", oneInt);
+    uint8_t parseDepth = 0;
 
-    myInt.parse((char *) "myInt 5", 5);
+    myInt.parse((char *) "myInt 5", 5, parseDepth);
 
     EXPECT_EQ(int0, 5);
+    EXPECT_EQ(parseDepth, 1);
 
     memset(buffer, 0, sizeof(buffer));
     uint8_t len = myInt.getValuesInfo(buffer);
@@ -33,10 +35,13 @@ void intFloat(int data0, float data1) {
 TEST(COMMAND, commandIntFloat) {
     Command myInt("myInt", "desc", intFloat);
 
-    myInt.parse((char *) "myInt 5 2.54", 5);
+    uint8_t parseDepth = 0;
+
+    myInt.parse((char *) "myInt 5 2.54", 5, parseDepth);
 
     EXPECT_EQ(int0, 5);
     EXPECT_EQ(float0, 2.54f);
+    EXPECT_EQ(parseDepth, 1);
 
     memset(buffer, 0, sizeof(buffer));
     uint8_t len = myInt.getValuesInfo(buffer);
@@ -53,11 +58,14 @@ void intFloatChar(int data0, float data1, char data2) {
 TEST(COMMAND, commandIntFloatChar) {
     Command myInt("myInt", "desc", intFloatChar);
 
-    myInt.parse((char *) "myInt 5 2.54 i", 5);
+    uint8_t parseDepth = 0;
+
+    myInt.parse((char *) "myInt 5 2.54 i", 5, parseDepth);
 
     EXPECT_EQ(int0, 5);
     EXPECT_EQ(float0, 2.54f);
     EXPECT_EQ(char0, 'i');
+    EXPECT_EQ(parseDepth, 1);
 
     memset(buffer, 0, sizeof(buffer));
     uint8_t len = myInt.getValuesInfo(buffer);
@@ -85,8 +93,10 @@ void myCommandCallback(const char *data) {
 TEST(COMMAND, commandChar) {
     memset(buffer, 0, sizeof(buffer));
     Command myCommand("myCommand", "desc", myCommandCallback);
-    myCommand.parse((char *) "myCommand command", 9);
+    uint8_t parseDepth = 0;
+    myCommand.parse((char *) "myCommand command", 9, parseDepth);
     EXPECT_STREQ(buffer, "command");
+    EXPECT_EQ(parseDepth, 1);
 
     memset(buffer, 0, sizeof(buffer));
     uint8_t len = myCommand.getValuesInfo(buffer);
@@ -101,8 +111,10 @@ void voidCallback() {
 TEST(COMMAND, commandVoid) {
     int0 = 0;
     Command myCommand("myCommand", "desc", voidCallback);
-    myCommand.parse((char *) "myCommand", 9);
+    uint8_t parseDepth = 0;
+    myCommand.parse((char *) "myCommand", 9, parseDepth);
     EXPECT_EQ(int0, 10);
+    EXPECT_EQ(parseDepth, 1);
 
     memset(buffer, 0, sizeof(buffer));
     uint8_t len = myCommand.getValuesInfo(buffer);

@@ -52,13 +52,11 @@ uint8_t CommandBase::getInfo(char* buffer, size_t bufferLength) {
     return offset;
 }
 
-bool CommandBase::parse(char* data, size_t data_len) {
-    if (data_len != name_len) {
-        return false;
-    }
-
-    if (std::memcmp(data, name, name_len) == 0) {
-        callback_handler((char*)data + name_len + 1);
+bool CommandBase::parse(const char* data, size_t dataLen, uint8_t& parseDepth) {
+    if (match(data, dataLen, true)) {
+        parseDepth++;
+        argsBegin = data + name_len;
+        callback_handler(argsBegin + 1);
         return true;
     }
     return false;
