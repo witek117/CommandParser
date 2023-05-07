@@ -34,3 +34,23 @@ const char* ItemBase::getNextArg(const char* data, uint8_t& argSize) {
     }
     return nullptr;
 }
+
+const char* ItemBase::getName() const {
+    return name;
+}
+
+size_t ItemBase::getNameLen() const {
+    return nameLen;
+}
+
+bool ItemBase::checkName(const char* data, size_t length, bool allLength) const {
+    if (allLength && (nameLen != length)) {
+        return false;
+    }
+
+    if (length > nameLen) {
+        return false;
+    }
+
+    return std::memcmp(data, name, length) == 0;
+}

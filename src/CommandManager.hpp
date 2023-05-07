@@ -2,7 +2,7 @@
 
 #include "CommandBase.hpp"
 #include "SimpleStream.h"
-#include "PrintManager.h"
+#include "PrintManager.hpp"
 
 class CommandManager : public PrintManager {
     enum class READING_STATE : uint8_t {

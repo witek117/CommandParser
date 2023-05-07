@@ -28,12 +28,12 @@ class CommandBase : public ItemBase {
 
   protected:
     template<typename Function, typename Tuple, size_t... I>
-    constexpr auto call(Function f, CommandBase& cmd, Tuple t, std::index_sequence<I...>) {
+    static constexpr auto call(Function f, CommandBase& cmd, Tuple t, std::index_sequence<I...>) {
         return f(cmd, std::get<I>(t)...);
     }
 
     template<typename Function, typename Tuple>
-    constexpr auto call(Function f, CommandBase& cmd, Tuple t) {
+    static constexpr auto call(Function f, CommandBase& cmd, Tuple t) {
         constexpr auto size = std::tuple_size<Tuple>::value;
         return call(f, cmd, t, std::make_index_sequence<size>{});
     }
@@ -56,6 +56,35 @@ class CommandBase : public ItemBase {
             return std::tuple_cat(std::make_tuple(val), get<R...>(ptr));
         } else {
             return std::make_tuple(val);
+        }
+    }
+
+    template<typename R0, typename... R>
+    static constexpr uint8_t checkType(char* buffer, uint8_t len) {
+        if constexpr (std::is_same<R0, float>()) {
+            buffer[len] = 'f';
+        } else if constexpr (std::is_same<R0, double>()) {
+            buffer[len] = 'd';
+        } else if constexpr (std::is_same<R0, void>()) {
+            buffer[len] = 'v';
+        } else if constexpr (std::is_same<R0, int>() || std::is_same<R0, uint32_t>()) {
+            buffer[len] = 'i';
+        } else if constexpr (std::is_same<R0, char>()) {
+            buffer[len] = 'c';
+        } else if constexpr (std::is_same<R0, const char*>()) {
+            buffer[len++] = 'c';
+            buffer[len]   = '*';
+        } else if constexpr (std::is_same<R0, bool>()) {
+            buffer[len] = 'b';
+        } else {
+            buffer[len] = 'u';
+        }
+
+        len++;
+        if constexpr (sizeof...(R) > 0) {
+            return checkType<R...>(buffer, len);
+        } else {
+            return len;
         }
     }
 };

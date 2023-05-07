@@ -1,5 +1,7 @@
 add_library(CommandParser STATIC
     CommandBase.cpp
+    CommandSet.cpp
+    PrintManager.cpp
     ItemBase.cpp
     Parser.cpp
 )
