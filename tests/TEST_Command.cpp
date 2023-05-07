@@ -3,10 +3,10 @@
 #include <gmock/gmock.h>
 #include <vector>
 
-static char buffer[20] = {0};
-static int int0 = 0;
-static float float0 = 0.0f;
-static char char0 = '0';
+static char  buffer[20] = {0};
+static int   int0       = 0;
+static float float0     = 0.0f;
+static char  char0      = '0';
 
 void oneInt(CommandBase& cmd, int data) {
     (void)cmd;
@@ -17,7 +17,7 @@ TEST(COMMAND, commandInt) {
     Command myInt("myInt", "desc", oneInt);
     uint8_t parseDepth = 0;
 
-    myInt.parse((char *) "myInt 5", 5, parseDepth);
+    myInt.parse((char*)"myInt 5", 5, parseDepth);
 
     EXPECT_EQ(int0, 5);
     EXPECT_EQ(parseDepth, 1);
@@ -30,7 +30,7 @@ TEST(COMMAND, commandInt) {
 
 void intFloat(CommandBase& cmd, int data0, float data1) {
     (void)cmd;
-    int0 = data0;
+    int0   = data0;
     float0 = data1;
 }
 
@@ -39,7 +39,7 @@ TEST(COMMAND, commandIntFloat) {
 
     uint8_t parseDepth = 0;
 
-    myInt.parse((char *) "myInt 5 2.54", 5, parseDepth);
+    myInt.parse((char*)"myInt 5 2.54", 5, parseDepth);
 
     EXPECT_EQ(int0, 5);
     EXPECT_EQ(float0, 2.54f);
@@ -53,9 +53,9 @@ TEST(COMMAND, commandIntFloat) {
 
 void intFloatChar(CommandBase& cmd, int data0, float data1, char data2) {
     (void)cmd;
-    int0 = data0;
+    int0   = data0;
     float0 = data1;
-    char0 = data2;
+    char0  = data2;
 }
 
 TEST(COMMAND, commandIntFloatChar) {
@@ -63,7 +63,7 @@ TEST(COMMAND, commandIntFloatChar) {
 
     uint8_t parseDepth = 0;
 
-    myInt.parse((char *) "myInt 5 2.54 i", 5, parseDepth);
+    myInt.parse((char*)"myInt 5 2.54 i", 5, parseDepth);
 
     EXPECT_EQ(int0, 5);
     EXPECT_EQ(float0, 2.54f);
@@ -81,7 +81,7 @@ TEST(COMMAND, commandIntFloatCharMissingArg) {
 
     uint8_t parseDepth = 0;
 
-    myInt.parse((char *) "myInt 6 2.57", 5, parseDepth);
+    myInt.parse((char*)"myInt 6 2.57", 5, parseDepth);
 
     EXPECT_EQ(int0, 6);
     EXPECT_EQ(float0, 2.57f);
@@ -103,7 +103,7 @@ TEST(COMMAND, commandDouble) {
     EXPECT_EQ(len, 3);
 }
 
-void myCommandCallback(CommandBase& cmd, const char *data) {
+void myCommandCallback(CommandBase& cmd, const char* data) {
     (void)cmd;
     strcpy(buffer, data);
 }
@@ -112,7 +112,7 @@ TEST(COMMAND, commandChar) {
     memset(buffer, 0, sizeof(buffer));
     Command myCommand("myCommand", "desc", myCommandCallback);
     uint8_t parseDepth = 0;
-    myCommand.parse((char *) "myCommand command", 9, parseDepth);
+    myCommand.parse((char*)"myCommand command", 9, parseDepth);
     EXPECT_STREQ(buffer, "command");
     EXPECT_EQ(parseDepth, 1);
 
@@ -131,7 +131,7 @@ TEST(COMMAND, commandVoid) {
     int0 = 0;
     Command myCommand("myCommand", "desc", voidCallback);
     uint8_t parseDepth = 0;
-    myCommand.parse((char *) "myCommand", 9, parseDepth);
+    myCommand.parse((char*)"myCommand", 9, parseDepth);
     EXPECT_EQ(int0, 10);
     EXPECT_EQ(parseDepth, 1);
 
@@ -155,7 +155,7 @@ TEST(COMMAND, commandIntFloatCharMissing) {
 
     uint8_t parseDepth = 0;
 
-    myInt.parse((char *) "missing", 7, parseDepth);
+    myInt.parse((char*)"missing", 7, parseDepth);
 
     EXPECT_EQ(int0, 0);
     EXPECT_EQ(float0, 0.0f);

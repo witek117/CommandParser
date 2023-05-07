@@ -4,9 +4,9 @@
 uint8_t CommandBase::getInfo(char* buffer, size_t bufferLength) {
     uint8_t offset = 0;
 
-    if ((offset + name_len) < bufferLength) {
-        std::memcpy(&buffer[offset], name, name_len);
-        offset += name_len;
+    if ((offset + nameLen) < bufferLength) {
+        std::memcpy(&buffer[offset], name, nameLen);
+        offset += nameLen;
     } else {
         std::memcpy(&buffer[offset], name, (bufferLength - offset - 1));
         return bufferLength - 1;
@@ -42,9 +42,9 @@ uint8_t CommandBase::getInfo(char* buffer, size_t bufferLength) {
         return offset;
     }
 
-    if ((offset + description_len) < bufferLength) {
-        std::memcpy(&buffer[offset], description, description_len);
-        offset += description_len;
+    if ((offset + descriptionLen) < bufferLength) {
+        std::memcpy(&buffer[offset], description, descriptionLen);
+        offset += descriptionLen;
     } else {
         std::memcpy(&buffer[offset], description, (bufferLength - offset - 1));
         return bufferLength - 1;
@@ -53,9 +53,9 @@ uint8_t CommandBase::getInfo(char* buffer, size_t bufferLength) {
 }
 
 bool CommandBase::parse(const char* data, size_t dataLen, uint8_t& parseDepth) {
-    if (match(data, dataLen, true)) {
+    if (checkName(data, dataLen, true)) {
         parseDepth++;
-        argsBegin = data + name_len;
+        argsBegin = data + nameLen;
         callback_handler(argsBegin + 1);
         return true;
     }

@@ -27,6 +27,7 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
             tests/TEST_CommandSet.cpp
             tests/TEST_PrintManager.cpp
             tests/TEST_ItemBase.cpp
+            tests/TEST_CommandBase.cpp
             )
 
     target_link_libraries(

@@ -14,7 +14,7 @@ class CommandSetBase : public ItemBase {
     virtual int getCount() const = 0;
 
     virtual bool parse(const char* data, size_t dataLen, uint8_t& parseDepth) {
-        if (match(data, dataLen, true)) {
+        if (checkName(data, dataLen, true)) {
             parseDepth++;
             uint8_t temporaryParseDepth = parseDepth;
             data += dataLen;

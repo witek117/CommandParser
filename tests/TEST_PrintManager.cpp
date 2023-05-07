@@ -5,7 +5,7 @@
 class Print : public PrintManager {
     std::string dataFromApp = "";
 
-public:
+  public:
     std::string getDataFromApp() {
         return dataFromApp;
     }
@@ -15,7 +15,7 @@ public:
     }
 
 
-    void printData(const char *s, uint8_t length) override {
+    void printData(const char* s, uint8_t length) override {
         for (int i = 0; i < length; i++) {
             dataFromApp += s[i];
         }
@@ -236,12 +236,12 @@ TEST(PrintManager, print_float) {
     EXPECT_EQ(printer.getDataFromApp(), std::string("0.00"));
     printer.flush();
 
-    char buffer[40] = {0};
+    char  buffer[40]   = {0};
     float testingFloat = -0.01f;
     for (uint32_t i = 0; i < 300; i++) {
         memset(buffer, 0, 40);
         testingFloat += 0.01f;
-        std::sprintf(buffer, "%.2f",testingFloat);
+        std::sprintf(buffer, "%.2f", testingFloat);
         printer.print(testingFloat);
         EXPECT_EQ(printer.getDataFromApp(), std::string(buffer));
         printer.flush();

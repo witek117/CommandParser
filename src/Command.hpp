@@ -1,31 +1,11 @@
 #pragma once
 
 #include "CommandBase.hpp"
-#include "parser.hpp"
+#include "Parser.hpp"
 
 template<typename... T>
 class Command : public CommandBase {
     void (*handler)(CommandBase&, T...) = nullptr;
-
-    template<class R0, class... R>
-    constexpr std::tuple<R0, R...> get(std::string_view const& s) {
-        const auto val      = parser::parse<R0>(s);
-        const auto spacePos = s.find_first_of(' ', 0);
-        char*      ptr      = (char*)"";
-
-        if (spacePos != std::string_view::npos) {
-            auto p = (char*)getNextArg(s.data() + spacePos);
-            if (p != nullptr) {
-                ptr = p;
-            }
-        }
-
-        if constexpr (sizeof...(R) > 0) {
-            return std::tuple_cat(std::make_tuple(val), get<R...>(ptr));
-        } else {
-            return std::make_tuple(val);
-        }
-    }
 
     inline void callback_handler(const char* data) override {
         (void)data;
@@ -37,7 +17,7 @@ class Command : public CommandBase {
     }
 
     template<typename R0, typename... R>
-    constexpr uint8_t checkType(char* buffer, uint8_t len) {
+    static constexpr uint8_t checkType(char* buffer, uint8_t len) {
         if constexpr (std::is_same<R0, float>()) {
             buffer[len] = 'f';
         } else if constexpr (std::is_same<R0, double>()) {
