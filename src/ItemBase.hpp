@@ -6,47 +6,17 @@
 class ItemBase {
   protected:
     const char* name;
-    size_t      name_len = 0;
+    size_t      nameLen;
     const char* description;
-    size_t      description_len = 0;
+    size_t      descriptionLen;
 
   public:
-    const char* getNextArg(const char* data) {
-        if(data == nullptr) {
-            return nullptr;
-        }
-        const char* ptr = data;
-        while(true) {
-            if (*ptr == '\0') {
-                return nullptr;
-            }
+    static const char* getNextArg(const char* data);
 
-            if (*ptr == ' ') {
-                ptr++;
-            } else {
-                break;
-            }
-        }
-        return ptr;
-    }
+    static const char* getNextArg(const char* data, uint8_t& argSize);
 
-    const char* getNextArg(const char* data, uint8_t& argSize) {
-        argSize = 0;
-        const char* ptr = getNextArg(data);
-        if(ptr == nullptr) {
-            return nullptr;
-        }
-
-        for (uint8_t i = 0; i < 20; i++) {
-            if (ptr[i] == ' ' || ptr[i] == '\0') {
-                argSize = i;
-                return ptr;
-            }
-        }
-        return nullptr;
-    }
-
-    ItemBase(const char* name, const char* description) : name(name), name_len(std::strlen(name)), description(description), description_len(strlen(description)) {
+    ItemBase(const char* name, const char* description) : 
+        name(name), nameLen(std::strlen(name)), description(description), descriptionLen(strlen(description)) {
     }
 
     const char* getName() const {
@@ -54,7 +24,7 @@ class ItemBase {
     }
 
     size_t getNameLen() const {
-        return name_len;
+        return nameLen;
     }
 
     virtual uint8_t getInfo(char* buffer, size_t bufferLength) {
@@ -63,12 +33,12 @@ class ItemBase {
         return 0;
     }
 
-    bool match(const char* data, size_t length, bool allLength = false) {
-        if (allLength && (name_len != length)) {
+    bool checkName(const char* data, size_t length, bool allLength = false) const {
+        if (allLength && (nameLen != length)) {
             return false;
         }
 
-        if (length > name_len) {
+        if (length > nameLen) {
             return false;
         }
 

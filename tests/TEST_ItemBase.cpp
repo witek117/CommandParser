@@ -3,13 +3,12 @@
 #include <gmock/gmock.h>
 #include <vector>
 
-
-TEST(ITEMBASE, match) {
+TEST(ITEMBASE, checkName) {
     ItemBase item("new_item", "description");
 
-    EXPECT_TRUE(item.match("new", 3));
-    EXPECT_FALSE(item.match("new", 3, true));
-    EXPECT_TRUE(item.match("new_item", 8, true));
+    EXPECT_TRUE(item.checkName("new", 3));
+    EXPECT_FALSE(item.checkName("new", 3, true));
+    EXPECT_TRUE(item.checkName("new_item", 8, true));
 }
 
 TEST(ITEMBASE, getNextArg) {
@@ -32,7 +31,7 @@ TEST(ITEMBASE, getNextArg) {
 
 TEST(ITEMBASE, parse) {
     ItemBase item("new_item", "description");
-    uint8_t parseDepth = 0;
+    uint8_t  parseDepth = 0;
 
     EXPECT_FALSE(item.parse("test", 0, parseDepth));
 }
