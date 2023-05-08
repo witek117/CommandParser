@@ -5,17 +5,29 @@
 #include <tuple>
 
 class CommandBase : public ItemBase {
-    bool        shouldReturnValue = false;
-    uint8_t     parametersCount   = 0;
-    const char* argsBegin         = nullptr;
+    const bool    shouldReturnValue = false;
+    const uint8_t parametersCount   = 0;
+    const char*   argsBegin         = nullptr;
 
   protected:
     virtual void    callback_handler(const char* data) = 0;
     virtual uint8_t getValuesInfo(char* buffer)        = 0;
 
   public:
-    uint8_t getArgLen() {
-        return 0;
+    uint8_t getArgCount() {
+        uint8_t     argsCount = 0;
+        const char* ptr       = argsBegin;
+        while (true) {
+            if (*ptr == ' ') {
+                argsCount++;
+            }
+            if (*ptr == '\0') {
+                argsCount++;
+                break;
+            }
+            ptr++;
+        }
+        return argsCount;
     };
 
     virtual uint8_t getInfo(char* buffer, size_t bufferLength);

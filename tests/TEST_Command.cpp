@@ -162,3 +162,22 @@ TEST(COMMAND, commandIntFloatCharMissing) {
     EXPECT_EQ(char0, '\0');
     EXPECT_EQ(parseDepth, 1);
 }
+
+bool gatArgumentCountCalled = false;
+void gatArgumentCount(CommandBase& cmd, int i, float j, char k) {
+    (void)i;
+    (void)j;
+    (void)k;
+    EXPECT_EQ(cmd.getArgCount(), 3);
+    gatArgumentCountCalled = true;
+}
+
+TEST(COMMAND, gatArgumentCount) {
+    int0 = 0;
+    Command myCommand("myCommand", "desc", gatArgumentCount);
+    uint8_t parseDepth = 0;
+    gatArgumentCountCalled = false;
+    myCommand.parse((char*)"myCommand 7 3.43 hello", 9, parseDepth);
+
+    EXPECT_TRUE(gatArgumentCountCalled);
+}

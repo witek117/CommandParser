@@ -55,8 +55,8 @@ uint8_t CommandBase::getInfo(char* buffer, size_t bufferLength) {
 bool CommandBase::parse(const char* data, size_t dataLen, uint8_t& parseDepth) {
     if (checkName(data, dataLen, true)) {
         parseDepth++;
-        argsBegin = data + nameLen;
-        callback_handler(argsBegin + 1);
+        argsBegin = data + nameLen + 1;
+        callback_handler(argsBegin);
         return true;
     }
     return false;
