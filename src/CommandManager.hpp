@@ -2,7 +2,6 @@
 
 #include "CommandBase.hpp"
 #include "PrintManager.hpp"
-#include <iostream>
 
 template <int count>
 class CommandManager : public PrintManager {
