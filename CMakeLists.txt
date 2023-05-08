@@ -22,9 +22,13 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
 
     add_executable(CommandParser_unitTests
             tests/TEST_Command.cpp
-            tests/TEST_StreamCommandManager.cpp
+            tests/TEST_CommandManager.cpp
+            # tests/TEST_StreamCommandManager.cpp
             tests/TEST_Parser.cpp
+            tests/TEST_CommandSet.cpp
             tests/TEST_PrintManager.cpp
+            tests/TEST_ItemBase.cpp
+            tests/TEST_CommandBase.cpp
             )
 
     target_link_libraries(

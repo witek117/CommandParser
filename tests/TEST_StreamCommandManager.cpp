@@ -1,12 +1,12 @@
 #include "Stream.h"
-#include "CommandManager.h"
+#include "CommandManager.hpp"
 #include <gmock/gmock.h>
 
 static Stream stream;
 
 char data_table[3][100];
 
-void callback1(const char *data) {
+void callback1(const char* data) {
     static int data_len = 0;
     strcpy(data_table[data_len], data);
     data_len++;
@@ -14,9 +14,9 @@ void callback1(const char *data) {
 
 using ::testing::StrictMock;
 
-TEST (COMMAND_MANAGER, multiCommands) {
-    Command jeden("jeden", callback1);
-    Command dwa("dwa", callback1);
+TEST(COMMAND_MANAGER, multiCommands) {
+    Command jeden("jeden", "desc", callback1);
+    Command dwa("dwa", "desc", callback1);
 
     CommandManager<2> command_manager(stream);
     command_manager.addCommand(&jeden);
@@ -24,7 +24,7 @@ TEST (COMMAND_MANAGER, multiCommands) {
 
     command_manager.init();
 
-    const char *data = "jeden sdfg\ndwa 2345\n";
+    const char* data = "jeden sdfg\ndwa 2345\n";
 
     for (size_t i = 0; i < strlen(data); i++) {
         stream.pushToRXBuffer(data[i]);
@@ -42,10 +42,10 @@ TEST (COMMAND_MANAGER, multiCommands) {
 
 float ff1, ff2;
 
-void twoFloats(const char *data) {
-    auto[f1, f2] = parser::get<float, float>(data);
-    ff1 = f1;
-    ff2 = f2;
+void twoFloats(const char* data) {
+    auto [f1, f2] = parser::get<float, float>(data);
+    ff1           = f1;
+    ff2           = f2;
 }
 
 TEST(COMMAND_MANAGER, twoFloats) {
@@ -56,7 +56,7 @@ TEST(COMMAND_MANAGER, twoFloats) {
 
     command_manager.init();
 
-    const char *data = "floats 2.456 3.654\n";
+    const char* data = "floats 2.456 3.654\n";
 
     for (size_t i = 0; i < strlen(data); i++) {
         stream.pushToRXBuffer(data[i]);
@@ -66,30 +66,30 @@ TEST(COMMAND_MANAGER, twoFloats) {
         command_manager.run();
     }
 
-    EXPECT_EQ(ff1, (float) (2.456));
-    EXPECT_EQ(ff2, (float) (3.654));
+    EXPECT_EQ(ff1, (float)(2.456));
+    EXPECT_EQ(ff2, (float)(3.654));
     EXPECT_EQ(stream.getTxBuffer(), std::string(""));
 }
 
 int functionNUmber = 0;
 
-void question1(const char *data) {
-    (void) data;
+void question1(const char* data) {
+    (void)data;
     functionNUmber = 1;
 }
 
-void question2(const char *data) {
-    (void) data;
+void question2(const char* data) {
+    (void)data;
     functionNUmber = 2;
 }
 
-void question3(const char *data) {
-    (void) data;
+void question3(const char* data) {
+    (void)data;
     functionNUmber = 3;
 }
 
-void question4(const char *data) {
-    (void) data;
+void question4(const char* data) {
+    (void)data;
     functionNUmber = 4;
 }
 
@@ -107,7 +107,7 @@ TEST(COMMAND_MANAGER, question) {
 
     command_manager.init();
 
-    const char *data1 = "t 1\n";
+    const char* data1 = "t 1\n";
     for (size_t i = 0; i < strlen(data1); i++) {
         stream.pushToRXBuffer(data1[i]);
     }
@@ -117,7 +117,7 @@ TEST(COMMAND_MANAGER, question) {
     }
     EXPECT_EQ(functionNUmber, 3);
 
-    const char *data2 = "t?\n";
+    const char* data2 = "t?\n";
     for (size_t i = 0; i < strlen(data2); i++) {
         stream.pushToRXBuffer(data2[i]);
     }
@@ -142,7 +142,7 @@ TEST(COMMAND_MANAGER, undefined) {
     command_manager.addCommand(&q4);
 
     stream.flush();
-    const char *data1 = "t 1\n";
+    const char* data1 = "t 1\n";
     for (size_t i = 0; i < strlen(data1); i++) {
         stream.pushToRXBuffer(data1[i]);
     }
@@ -157,16 +157,16 @@ TEST(COMMAND_MANAGER, print) {
     CommandManager<1> command_manager(stream);
     command_manager.init();
 
-    command_manager.print((uint16_t) 123);
+    command_manager.print((uint16_t)123);
     EXPECT_EQ(stream.getTxBuffer(), std::string("123"));
 
-    command_manager.print((uint32_t) 123);
+    command_manager.print((uint32_t)123);
     EXPECT_EQ(stream.getTxBuffer(), std::string("123"));
 
-    command_manager.print((int16_t) 123);
+    command_manager.print((int16_t)123);
     EXPECT_EQ(stream.getTxBuffer(), std::string("123"));
 
-    command_manager.print((float) 123);
+    command_manager.print((float)123);
     EXPECT_EQ(stream.getTxBuffer(), std::string("123.00"));
 
     command_manager.print("123");
@@ -179,11 +179,14 @@ TEST(COMMAND_MANAGER, print) {
     EXPECT_EQ(stream.getTxBuffer(), std::string("12"));
 }
 
-void info0Callback() {}
+void info0Callback() {
+}
 
-void info1Callback() {}
+void info1Callback() {
+}
 
-void info2Callback() {}
+void info2Callback() {
+}
 
 TEST(COMMAND_MANAGER, getInfoVoid) {
     CommandManager<3> command_manager(stream);
@@ -207,22 +210,32 @@ TEST(COMMAND_MANAGER, getInfoVoid) {
     EXPECT_TRUE(stream.getTxBuffer() == compareString);
 }
 
-void intCallback(int data) { (void) data; }
+void intCallback(int data) {
+    (void)data;
+}
 
-void floatCallback(float data) { (void) data; }
+void floatCallback(float data) {
+    (void)data;
+}
 
-void doubleCallback(double data) { (void) data; }
+void doubleCallback(double data) {
+    (void)data;
+}
 
-void charCallback(char data) { (void) data; }
+void charCallback(char data) {
+    (void)data;
+}
 
-void charPointerCallback(const char *data) { (void) data; }
+void charPointerCallback(const char* data) {
+    (void)data;
+}
 
 TEST(COMMAND_MANAGER, getInfoDifferentValues) {
     CommandManager<5> command_manager(stream);
     command_manager.init();
 
-    char names[5][10] = {"info0", "info1", "info2", "info3", "info4"};
-    char valuesInfo[5][3] = {"i", "f", "d", "c", "c*"};
+    char names[5][10]       = {"info0", "info1", "info2", "info3", "info4"};
+    char valuesInfo[5][3]   = {"i", "f", "d", "c", "c*"};
     char returnValues[5][3] = {"t", "f", "t", "f", "f"};
 
     Command info0(names[0], intCallback, true);
@@ -254,10 +267,10 @@ TEST(COMMAND_MANAGER, getInfoDifferentValues) {
     EXPECT_EQ(originalString.size(), compareString.size());
 
     for (int i = 0; i < originalString.size(); i++) {
-        EXPECT_EQ(originalString[i], compareString[i]) << (int) i << std::endl;
+        EXPECT_EQ(originalString[i], compareString[i]) << (int)i << std::endl;
     }
 
-    const char *data = "?\n";
+    const char* data = "?\n";
     for (size_t i = 0; i < strlen(data); i++) {
         stream.pushToRXBuffer(data[i]);
     }

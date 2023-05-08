@@ -9,12 +9,12 @@ class Stream : public SimpleStream {
     std::vector<uint8_t> rxData;
     std::vector<uint8_t> txData;
 
-public:
+  public:
     uint16_t available() override {
         return rxData.size();
     }
 
-    void write(uint8_t *data, uint16_t length) override {
+    void write(uint8_t* data, uint16_t length) override {
         for (uint16_t i = 0; i < length; ++i) {
             txData.push_back(data[i]);
         }
@@ -33,7 +33,7 @@ public:
     std::string getTxBuffer() {
         std::string data;
         while (!txData.empty()) {
-            data += (char) (txData.front());
+            data += (char)(txData.front());
             txData.erase(txData.begin());
         }
         return data;
