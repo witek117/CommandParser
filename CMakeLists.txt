@@ -43,7 +43,5 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
 
     SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -fno-rtti -Werror=unused-parameter")
 else()
-    SET(ONLY_LIBRARY TRUE)
     add_subdirectory(src)
-    UNSET(ONLY_LIBRARY)
 endif()

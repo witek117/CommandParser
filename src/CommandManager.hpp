@@ -1,7 +1,8 @@
 #pragma once
 
-#include "CommandBase.hpp"
+#include "ItemBase.hpp"
 #include "PrintManager.hpp"
+#include <array>
 
 struct Config {
     typedef bool (*write_function_t)(const char* data, size_t length);
