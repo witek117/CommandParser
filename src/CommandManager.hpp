@@ -3,8 +3,18 @@
 #include "CommandBase.hpp"
 #include "PrintManager.hpp"
 
-template <int count>
+struct Config {
+    typedef bool (*write_function_t)(const char* data, size_t length);
+    typedef const char* (*read_function_t)(size_t& length);
+
+    read_function_t  readFunction;
+    write_function_t writeFunction;
+};
+
+template<int count>
 class CommandManager : public PrintManager {
+    using CommandContainer = std::array<ItemBase*, count>;
+
     enum class READING_STATE : uint8_t {
         CLEAR,
         ADD_DATA,
@@ -12,41 +22,24 @@ class CommandManager : public PrintManager {
         SKIPPING,
     };
 
-    READING_STATE state           = READING_STATE::CLEAR;
-    size_t        commands_count  = count;
-    size_t        received_bytes  = 0;
-    uint8_t       skipping_index  = 0;
-    char          cmd_buffer[100] = {0};
-
-    typedef bool (*write_function_t)(const char* data, size_t length);
-    typedef const char* (*read_function_t)(size_t& length);
-
-    read_function_t readFunction;
-    write_function_t writeFunction;
-
-    using CommandContainer = std::array<ItemBase*, count>;
+    READING_STATE    state           = READING_STATE::CLEAR;
+    size_t           commands_count  = count;
+    size_t           received_bytes  = 0;
+    uint8_t          skipping_index  = 0;
+    char             cmd_buffer[100] = {0};
+    Config           config;
     CommandContainer commands;
+    size_t           readBufferLength = 0;
+    size_t           readBufferIndex  = 0;
+    const char*      readBuffer       = nullptr;
 
   public:
-    CommandManager(CommandContainer commands, read_function_t readFunction, write_function_t writeFunction) :
-        commands(commands), readFunction(readFunction), writeFunction(writeFunction) {
+    CommandManager(Config config, CommandContainer commands) : config(config), commands(commands) {
     }
 
     inline void printData(const char* s, uint8_t length) override {
-        writeFunction(s, length);
+        config.writeFunction(s, length);
     }
-
-    // void getInfo() {
-    //     constexpr size_t infoBufferLength             = 100;
-    //     char             infoBuffer[infoBufferLength] = {0};
-    //     for (uint8_t i = 0; i < commands_count; i++) {
-    //         std::memset(infoBuffer, 0, infoBufferLength);
-    //         uint8_t len       = commands[i]->getInfo(infoBuffer, infoBufferLength);
-    //         infoBuffer[len++] = '\n';
-    //         infoBuffer[len++] = '\r';
-    //         printData(infoBuffer, len);
-    //     }
-    // }
 
     void init() {
     }
@@ -59,13 +52,11 @@ class CommandManager : public PrintManager {
         }
     }
 
-    size_t readBufferLength = 0;
-    size_t readBufferIndex = 0;
-    const char* readBuffer = nullptr;
+
     size_t available() {
-        if(readBufferIndex == readBufferLength) {
+        if (readBufferIndex == readBufferLength) {
             readBufferIndex = 0;
-            readBuffer = readFunction(readBufferLength);
+            readBuffer      = config.readFunction(readBufferLength);
         }
 
         return readBufferLength - readBufferIndex;
@@ -200,5 +191,4 @@ class CommandManager : public PrintManager {
 
         print("undefined\n\r");
     }
-
 };

@@ -37,11 +37,16 @@ bool writeFunction(const char* data, size_t length) {
     return false;
 }
 
+Config config {
+    .readFunction = readFunction,
+    .writeFunction = writeFunction
+};
+
 TEST(COMMAND_MANAGER, multiCommands) {
     Command jeden("jeden", "desc", callback1);
     Command dwa("dwa", "desc", callback1);
 
-    CommandManager<2> command_manager({&jeden, &dwa}, readFunction, writeFunction);
+    CommandManager<2> command_manager(config, {&jeden, &dwa});
 
     command_manager.init();
 
@@ -69,7 +74,7 @@ void twoFloats(CommandBase& cmd, const char* data) {
 TEST(COMMAND_MANAGER, twoFloats) {
     Command floats("floats", "desc", twoFloats);
 
-    CommandManager<1> command_manager({&floats}, readFunction, writeFunction);
+    CommandManager<1> command_manager(config, {&floats});
 
     command_manager.init();
 
@@ -116,7 +121,7 @@ TEST(COMMAND_MANAGER, question) {
     Command q3("t", "t", question3);
     Command q4("n", "n", question4);
 
-    CommandManager<4> command_manager({&q1, &q2, &q3, &q4}, readFunction, writeFunction);
+    CommandManager<4> command_manager(config, {&q1, &q2, &q3, &q4});
 
     command_manager.init();
 
@@ -137,7 +142,7 @@ TEST(COMMAND_MANAGER, question) {
 
 TEST(COMMAND_MANAGER, undefined) {
     Command q4("n", "n", question4);
-    CommandManager<1> command_manager({&q4}, readFunction, writeFunction);
+    CommandManager<1> command_manager(config, {&q4});
 
     
     command_manager.init();
@@ -159,7 +164,7 @@ TEST(COMMAND_MANAGER, undefined) {
 
 TEST(COMMAND_MANAGER, print) {
     Command q4("n", "n", question4);
-    CommandManager<1> command_manager({&q4}, readFunction, writeFunction);
+    CommandManager<1> command_manager(config, {&q4});
 
     command_manager.init();
 
