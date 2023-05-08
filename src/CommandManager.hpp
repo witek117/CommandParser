@@ -1,9 +1,10 @@
 #pragma once
 
 #include "CommandBase.hpp"
-#include "SimpleStream.h"
 #include "PrintManager.hpp"
+#include <iostream>
 
+template <int count>
 class CommandManager : public PrintManager {
     enum class READING_STATE : uint8_t {
         CLEAR,
@@ -13,37 +14,42 @@ class CommandManager : public PrintManager {
     };
 
     READING_STATE state           = READING_STATE::CLEAR;
-    CommandBase** commands        = nullptr;
-    int           size            = 0;
-    SimpleStream* stream          = nullptr;
-    size_t        commands_count  = 0;
+    size_t        commands_count  = count;
     size_t        received_bytes  = 0;
     uint8_t       skipping_index  = 0;
     char          cmd_buffer[100] = {0};
 
+    typedef bool (*write_function_t)(const char* data, size_t length);
+    typedef const char* (*read_function_t)(size_t& length);
+
+    read_function_t readFunction;
+    write_function_t writeFunction;
+
+    using CommandContainer = std::array<ItemBase*, count>;
+    CommandContainer commands;
+
   public:
-    CommandManager(CommandBase** commands, int size, SimpleStream* stream) : commands(commands), size(size), stream(stream) {
+    CommandManager(CommandContainer commands, read_function_t readFunction, write_function_t writeFunction) :
+        commands(commands), readFunction(readFunction), writeFunction(writeFunction) {
     }
 
     inline void printData(const char* s, uint8_t length) override {
-        stream->write((uint8_t*)s, length);
+        writeFunction(s, length);
     }
 
-    void getInfo() {
-        constexpr size_t infoBufferLength             = 100;
-        char             infoBuffer[infoBufferLength] = {0};
-        for (uint8_t i = 0; i < commands_count; i++) {
-            std::memset(infoBuffer, 0, infoBufferLength);
-            uint8_t len       = commands[i]->getInfo(infoBuffer, infoBufferLength);
-            infoBuffer[len++] = '\n';
-            infoBuffer[len++] = '\r';
-            printData(infoBuffer, len);
-        }
-    }
+    // void getInfo() {
+    //     constexpr size_t infoBufferLength             = 100;
+    //     char             infoBuffer[infoBufferLength] = {0};
+    //     for (uint8_t i = 0; i < commands_count; i++) {
+    //         std::memset(infoBuffer, 0, infoBufferLength);
+    //         uint8_t len       = commands[i]->getInfo(infoBuffer, infoBufferLength);
+    //         infoBuffer[len++] = '\n';
+    //         infoBuffer[len++] = '\r';
+    //         printData(infoBuffer, len);
+    //     }
+    // }
 
     void init() {
-        stream->init();
-        stream->flush();
     }
 
     inline void add_to_buffer(uint8_t data) {
@@ -54,15 +60,35 @@ class CommandManager : public PrintManager {
         }
     }
 
+    size_t readBufferLength = 0;
+    size_t readBufferIndex = 0;
+    const char* readBuffer = nullptr;
+    size_t available() {
+        if(readBufferIndex == readBufferLength) {
+            readBufferIndex = 0;
+            readBuffer = readFunction(readBufferLength);
+        }
+
+        return readBufferLength - readBufferIndex;
+    }
+
+    char read() {
+        return readBuffer[readBufferIndex++];
+    }
+
     bool run() {
+        size_t avai = 0;
+
         switch (state) {
             case READING_STATE::CLEAR:
                 state          = READING_STATE::ADD_DATA;
                 received_bytes = 0;
                 break;
             case READING_STATE::ADD_DATA:
-                for (auto i = 0; i < stream->available(); i++) {
-                    uint8_t byte = stream->read();
+                avai = available();
+
+                for (auto i = 0; i < avai; i++) {
+                    char byte = read();
 
                     // check tabulator
                     if (byte == '\t') {
@@ -100,12 +126,12 @@ class CommandManager : public PrintManager {
                 state = READING_STATE::CLEAR;
                 break;
             case READING_STATE::SKIPPING:
-                if (stream->available() == 0) {
+                if (available() == 0) {
                     break;
                 }
 
                 if (skipping_index == 0) {
-                    uint8_t byte = stream->read();
+                    uint8_t byte = read();
                     if (byte == 0x5b) {
                         skipping_index++;
                     } else if (byte == 0x1b) {
@@ -117,7 +143,7 @@ class CommandManager : public PrintManager {
                 }
 
                 if (skipping_index == 1) {
-                    stream->read();
+                    read();
                     skipping_index = 0;
                     state          = READING_STATE::ADD_DATA;
                 }
@@ -127,22 +153,18 @@ class CommandManager : public PrintManager {
         return true;
     }
 
+    ItemBase* getItem(uint8_t index) {
+        return commands[index];
+    }
+
     void printHints(size_t length) {
         uint8_t match_commands = 0;
         uint8_t found_index    = 0;
 
         for (uint8_t i = 0; i < commands_count; i++) {
-            if (std::memcmp(cmd_buffer, commands[i]->getName(), length) == 0) {
-                if (match_commands == 0) {
-                    print("\r");
-                }
-
-                found_index = i;
-                if (match_commands != 0) {
-                    print("\t");
-                }
-                print(commands[i]->getName());
+            if (getItem(i)->checkName(cmd_buffer, length, false)) {
                 match_commands++;
+                found_index = i;
             }
         }
 
@@ -164,37 +186,20 @@ class CommandManager : public PrintManager {
     }
 
     void parse() {
+        // print("\n\r");
         uint8_t commandTitleLen = 0;
-        print("\n\r");
-
-        char* data = cmd_buffer;
-
-        for (uint8_t i = 0; i < 20; i++) {
-            if (data[i] == ' ' || data[i] == '\0') {
-                data[i]         = '\0';
-                commandTitleLen = i;
-                break;
-            }
-        }
-
+        ItemBase::getNextArg(cmd_buffer, commandTitleLen);
+        uint8_t temporaryParseDepth = 0;
         for (uint8_t i = 0; i < commands_count; i++) {
-            if (commands[i]->parse(data, commandTitleLen)) {
+            if (getItem(i)->parse(cmd_buffer, commandTitleLen, temporaryParseDepth)) {
                 return;
             }
-        }
-
-        if (strcmp(data, "?") == 0) {
-            getInfo();
-            return;
+            if (temporaryParseDepth != 0) {
+                break;
+            }
         }
 
         print("undefined\n\r");
     }
 
-    void addCommand(CommandBase* command) {
-        if (commands_count < size) {
-            commands[commands_count] = command;
-            commands_count++;
-        }
-    }
 };

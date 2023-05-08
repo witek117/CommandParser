@@ -24,7 +24,7 @@ class CommandBase : public ItemBase {
         ItemBase(name, description), shouldReturnValue(shouldReturnValue), parametersCount(parametersCount) {
     }
 
-    virtual bool parse(const char* data, size_t dataLen, uint8_t& parseDepth);
+    virtual bool parse(const char* data, size_t dataLen, uint8_t& parseDepth) override;
 
   protected:
     template<typename Function, typename Tuple, size_t... I>
