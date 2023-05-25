@@ -17,17 +17,23 @@ class CommandSetBase : public ItemBase {
     virtual ItemBase* getItem(int index) = 0;
 
     virtual int getCount() const = 0;
+
+    
 };
 
 template<int count>
 class CommandSet : public CommandSetBase {
   public:
     using CommandContainer = std::array<ItemBase*, count>;
-
+    
     CommandContainer commands;
 
     constexpr CommandSet(const char* name, const char* description, CommandContainer commands) :
         CommandSetBase(name, description), commands(commands) {
+    }
+
+    constexpr CommandSet(CommandContainer commands) :
+        CommandSetBase("", ""), commands(commands) {
     }
 
     virtual int getCount() const {

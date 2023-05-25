@@ -3,6 +3,7 @@
 #include "ItemBase.hpp"
 #include "PrintManager.hpp"
 #include "ParseBuffer.hpp"
+#include "CommandSet.hpp"
 #include <array>
 
 #include "esp_log.h"
@@ -19,8 +20,6 @@ struct Config {
 
 template<int count>
 class CommandManager : public PrintManager, ParseBuffer {
-    using CommandContainer = std::array<ItemBase*, count>;
-
     enum class READING_STATE : uint8_t {
         CLEAR,
         ADD_DATA,
@@ -28,17 +27,17 @@ class CommandManager : public PrintManager, ParseBuffer {
         SKIPPING,
     };
 
-    READING_STATE    state          = READING_STATE::CLEAR;
-    size_t           commands_count = count;
-    uint8_t          skipping_index = 0;
-    Config           config;
-    CommandContainer commands;
-    size_t           readBufferLength = 0;
-    size_t           readBufferIndex  = 0;
-    const char*      readBuffer       = nullptr;
+    READING_STATE state          = READING_STATE::CLEAR;
+    uint8_t       skipping_index = 0;
+    Config        config;
+    size_t        readBufferLength = 0;
+    size_t        readBufferIndex  = 0;
+    const char*   readBuffer       = nullptr;
+
+    CommandSet<count> commandSet;
 
   public:
-    CommandManager(Config config, CommandContainer commands) : config(config), commands(commands) {
+    CommandManager(Config config, std::array<ItemBase*, count> commands) : config(config), commandSet(commands) {
     }
 
     inline void printData(const char* s, uint8_t length) override {
@@ -138,10 +137,6 @@ class CommandManager : public PrintManager, ParseBuffer {
         return true;
     }
 
-    ItemBase* getItem(uint8_t index) {
-        return commands[index];
-    }
-
     int printHints() {
         // auto* data   = cmd_buffer;
         // auto  length = received_bytes;
@@ -228,20 +223,9 @@ class CommandManager : public PrintManager, ParseBuffer {
         ESP_LOGW(TAG, "parse %d, %s", ParseBuffer::size(), ParseBuffer::get());
 
         print("\n\r");
-        uint8_t commandTitleLen = 0;
-        ItemBase::getNextArg(ParseBuffer::get(), commandTitleLen);
         uint8_t temporaryParseDepth = 0;
-        for (uint8_t i = 0; i < commands_count; i++) {
-            auto item = getItem(i);
-            if (item == nullptr) {
-                continue;
-            }
-            if (item->parse(this, ParseBuffer::get(), temporaryParseDepth)) {
-                return;
-            }
-            if (temporaryParseDepth != 0) {
-                break;
-            }
+        if (commandSet.parse(this, ParseBuffer::get(), temporaryParseDepth)) {
+            return;
         }
 
         ParseBuffer::clear();
