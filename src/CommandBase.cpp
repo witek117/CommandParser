@@ -52,7 +52,7 @@ uint8_t CommandBase::getInfo(char* buffer, size_t bufferLength) {
     return offset;
 }
 
-bool CommandBase::parse(PrintManager* print, const char* data, size_t dataLen, uint8_t& parseDepth) {
+bool CommandBase::parse(PrintManager* print, const char* data, uint8_t& parseDepth) {
     printer = print;
     if (checkName(data) == ItemBase::Match::ALL) {
         parseDepth++;

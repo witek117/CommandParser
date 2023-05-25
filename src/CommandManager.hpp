@@ -236,7 +236,7 @@ class CommandManager : public PrintManager, ParseBuffer {
             if (item == nullptr) {
                 continue;
             }
-            if (item->parse(this, ParseBuffer::get(), commandTitleLen, temporaryParseDepth)) {
+            if (item->parse(this, ParseBuffer::get(), temporaryParseDepth)) {
                 return;
             }
             if (temporaryParseDepth != 0) {

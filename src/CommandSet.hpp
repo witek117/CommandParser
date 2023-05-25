@@ -12,7 +12,7 @@ class CommandSetBase : public ItemBase {
 
     virtual uint8_t getInfo(char* buffer, size_t bufferLength) override;
 
-    virtual bool parse(PrintManager* print, const char* data, size_t dataLen, uint8_t& parseDepth) override;
+    virtual bool parse(PrintManager* print, const char* data, uint8_t& parseDepth) override;
 
     virtual ItemBase* getItem(int index) = 0;
 

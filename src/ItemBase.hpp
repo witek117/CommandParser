@@ -39,10 +39,9 @@ class ItemBase {
         return 0;
     }
 
-    virtual bool parse(PrintManager* print, const char* data, size_t data_len, uint8_t& parseDepth) {
+    virtual bool parse(PrintManager* print, const char* data, uint8_t& parseDepth) {
         printer = print;
         (void)data;
-        (void)data_len;
         (void)parseDepth;
         return false;
     }
