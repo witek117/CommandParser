@@ -6,8 +6,9 @@ uint8_t CommandSetBase::getInfo(char* buffer, size_t bufferLength) {
     return 0;
 }
 
-bool CommandSetBase::parse(const char* data, size_t dataLen, uint8_t& parseDepth) {
-    if (checkName(data, dataLen, true)) {
+bool CommandSetBase::parse(PrintManager* print, const char* data, size_t dataLen, uint8_t& parseDepth) {
+    printer = print;
+    if (checkName(data) == ItemBase::Match::ALL) {
         parseDepth++;
         uint8_t temporaryParseDepth = parseDepth;
         data += dataLen;
@@ -17,7 +18,7 @@ bool CommandSetBase::parse(const char* data, size_t dataLen, uint8_t& parseDepth
             return false;
         }
         for (int i = 0; i < getCount(); i++) {
-            if (getCommand(i)->parse(ptr, len, temporaryParseDepth)) {
+            if (getItem(i)->parse(print, ptr, len, temporaryParseDepth)) {
                 parseDepth = temporaryParseDepth;
                 return true;
             }

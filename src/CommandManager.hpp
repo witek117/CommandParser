@@ -2,7 +2,12 @@
 
 #include "ItemBase.hpp"
 #include "PrintManager.hpp"
+#include "ParseBuffer.hpp"
 #include <array>
+
+#include "esp_log.h"
+
+static const char* TAG = "manager";
 
 struct Config {
     typedef bool (*write_function_t)(const char* data, size_t length);
@@ -13,7 +18,7 @@ struct Config {
 };
 
 template<int count>
-class CommandManager : public PrintManager {
+class CommandManager : public PrintManager, ParseBuffer {
     using CommandContainer = std::array<ItemBase*, count>;
 
     enum class READING_STATE : uint8_t {
@@ -23,11 +28,9 @@ class CommandManager : public PrintManager {
         SKIPPING,
     };
 
-    READING_STATE    state           = READING_STATE::CLEAR;
-    size_t           commands_count  = count;
-    size_t           received_bytes  = 0;
-    uint8_t          skipping_index  = 0;
-    char             cmd_buffer[100] = {0};
+    READING_STATE    state          = READING_STATE::CLEAR;
+    size_t           commands_count = count;
+    uint8_t          skipping_index = 0;
     Config           config;
     CommandContainer commands;
     size_t           readBufferLength = 0;
@@ -44,15 +47,6 @@ class CommandManager : public PrintManager {
 
     void init() {
     }
-
-    inline void add_to_buffer(uint8_t data) {
-        if (received_bytes < sizeof(cmd_buffer)) {
-            cmd_buffer[received_bytes++] = data;
-        } else {
-            state = READING_STATE::CLEAR;
-        }
-    }
-
 
     size_t available() {
         if (readBufferIndex == readBufferLength) {
@@ -72,8 +66,8 @@ class CommandManager : public PrintManager {
 
         switch (state) {
             case READING_STATE::CLEAR:
-                state          = READING_STATE::ADD_DATA;
-                received_bytes = 0;
+                state = READING_STATE::ADD_DATA;
+                ParseBuffer::clear();
                 break;
             case READING_STATE::ADD_DATA:
                 avai = available();
@@ -82,23 +76,23 @@ class CommandManager : public PrintManager {
                     char byte = read();
 
                     // check tabulator
-                    if (byte == '\t') {
-                        printHints(received_bytes);
+                    if (byte == '\t' || byte == '?') {
+                        printHints();
                         continue;
                     }
 
                     // check backspace
-                    if ((byte == 0x7f) && (received_bytes > 0)) {
-                        received_bytes--;
+                    if (byte == 0x7f) {
+                        ParseBuffer::pop();
                         break;
                     }
 
                     // check enter
                     if (byte == '\r' || byte == '\n') {
-                        if (received_bytes == 0) {
+                        if (ParseBuffer::size() == 0) {
                             continue;
                         }
-                        add_to_buffer('\0');
+                        ParseBuffer::push('\0');
                         state = READING_STATE::FOUND_COMMAND;
                         break;
                     }
@@ -109,7 +103,7 @@ class CommandManager : public PrintManager {
                         state          = READING_STATE::SKIPPING;
                         break;
                     }
-                    add_to_buffer(byte);
+                    ParseBuffer::push(byte);
                 }
                 break;
             case READING_STATE::FOUND_COMMAND:
@@ -128,7 +122,7 @@ class CommandManager : public PrintManager {
                     } else if (byte == 0x1b) {
                     } else {
                         skipping_index = 0;
-                        add_to_buffer(byte);
+                        ParseBuffer::push(byte);
                         state = READING_STATE::ADD_DATA;
                     }
                 }
@@ -148,47 +142,109 @@ class CommandManager : public PrintManager {
         return commands[index];
     }
 
-    void printHints(size_t length) {
-        uint8_t match_commands = 0;
-        uint8_t found_index    = 0;
+    int printHints() {
+        // auto* data   = cmd_buffer;
+        // auto  length = received_bytes;
 
-        for (uint8_t i = 0; i < commands_count; i++) {
-            if (getItem(i)->checkName(cmd_buffer, length, false)) {
-                match_commands++;
-                found_index = i;
-            }
-        }
+        // uint8_t match_commands = 0;
+        // uint8_t found_index    = 0;
 
-        if (match_commands == 1) {
-            auto match_command = commands[found_index];
-            received_bytes     = match_command->getNameLen();
-            std::memcpy(cmd_buffer, match_command->getName(), received_bytes);
-        } else if (match_commands > 1) {
-            received_bytes = length;
-            print("\n\r");
-            cmd_buffer[received_bytes] = 0;
-            print(cmd_buffer);
-        } else {
-            received_bytes = length;
-            print("\r");
-            cmd_buffer[received_bytes] = 0;
-            print(cmd_buffer);
-        }
+
+        // // ESP_LOGI(TAG, "length %d", length);
+
+        // if (length == 0) {
+        //     print("\n\r");
+        //     for (auto& item : commands) {
+        //         print(item->getName());
+        //         print('\t');
+        //         print(item->getDescription());
+        //         print("\n\r");
+        //     }
+        //     return 0;
+        // }
+
+        // uint8_t     name_len = 0;
+        // const char* name     = ItemBase::getNextArg(data, name_len);
+
+        // for (uint8_t i = 0; i < commands_count; i++) {
+        //     auto item = getItem(i);
+        //     if (item == nullptr) {
+        //         continue;
+        //     }
+
+        //     if (item->checkName(name, name_len, false)) {
+        //         match_commands++;
+        //         found_index = i;
+        //     }
+        // }
+
+        // ESP_LOGI("CommandManager", "match_commands %d", match_commands);
+
+        // if (match_commands == 1) {
+        //     auto match_command = getItem(found_index);
+
+        //     if (name[name_len] == ' ') {
+        //         name_len += 1;
+        //     }
+
+        //     // received_bytes     = match_command->getNameLen();
+        //     ParseBuffer::clear();
+        //     ParseBuffer::push(match_command->getName(), match_command->getNameLen());
+        //     ParseBuffer::push(' ');
+
+        //     print("\r\n");
+        //     auto ret = match_command->printHints(*this, (char*)(&cmd_buffer[received_bytes]), length - name_len);
+
+        //     // if (ret != 1) {
+        //     //     data[length] = 0;
+        //     // }
+
+        //     ESP_LOGW(TAG, "Have %d, %s", received_bytes, cmd_buffer);
+        //     print(data);
+        //     // print("\n\r");
+        // } else if (match_commands > 1) {
+        //     received_bytes = length;
+        //     print("\n\r");
+        //     data[received_bytes] = 0;
+        //     print(data);
+        //     // for(auto& item : commands) {
+        //     //     print(item->getName());
+        //     //     print('\t');
+        //     //     print(item->getDescription());
+        //     //     print("\n\r");
+        //     // }
+        // } else {
+        //     received_bytes = length;
+        //     print("\r");
+        //     data[received_bytes] = 0;
+        //     print(data);
+        // }
+
+
+        return 1;
     }
 
     void parse() {
-        // print("\n\r");
+        ESP_LOGW(TAG, "parse %d, %s", ParseBuffer::size(), ParseBuffer::get());
+
+        print("\n\r");
         uint8_t commandTitleLen = 0;
-        ItemBase::getNextArg(cmd_buffer, commandTitleLen);
+        ItemBase::getNextArg(ParseBuffer::get(), commandTitleLen);
         uint8_t temporaryParseDepth = 0;
         for (uint8_t i = 0; i < commands_count; i++) {
-            if (getItem(i)->parse(cmd_buffer, commandTitleLen, temporaryParseDepth)) {
+            auto item = getItem(i);
+            if (item == nullptr) {
+                continue;
+            }
+            if (item->parse(this, ParseBuffer::get(), commandTitleLen, temporaryParseDepth)) {
                 return;
             }
             if (temporaryParseDepth != 0) {
                 break;
             }
         }
+
+        ParseBuffer::clear();
 
         print("undefined\n\r");
     }

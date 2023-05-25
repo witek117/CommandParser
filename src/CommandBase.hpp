@@ -30,13 +30,17 @@ class CommandBase : public ItemBase {
         return argsCount;
     };
 
+    bool checkArgsCount() {
+        return getArgCount() == parametersCount;
+    }
+
     virtual uint8_t getInfo(char* buffer, size_t bufferLength);
 
     CommandBase(const char* name, const char* description, bool shouldReturnValue, uint8_t parametersCount) :
         ItemBase(name, description), shouldReturnValue(shouldReturnValue), parametersCount(parametersCount) {
     }
 
-    virtual bool parse(const char* data, size_t dataLen, uint8_t& parseDepth) override;
+    virtual bool parse(PrintManager* print, const char* data, size_t dataLen, uint8_t& parseDepth) override;
 
   protected:
     template<typename Function, typename Tuple, size_t... I>

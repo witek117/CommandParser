@@ -1,11 +1,11 @@
 #include "ItemBase.hpp"
 
 const char* ItemBase::getNextArg(const char* data) {
-    if(data == nullptr) {
+    if (data == nullptr) {
         return nullptr;
     }
     const char* ptr = data;
-    while(true) {
+    while (true) {
         if (*ptr == '\0') {
             return nullptr;
         }
@@ -20,9 +20,9 @@ const char* ItemBase::getNextArg(const char* data) {
 }
 
 const char* ItemBase::getNextArg(const char* data, uint8_t& argSize) {
-    argSize = 0;
+    argSize         = 0;
     const char* ptr = getNextArg(data);
-    if(ptr == nullptr) {
+    if (ptr == nullptr) {
         return nullptr;
     }
 
@@ -43,14 +43,36 @@ size_t ItemBase::getNameLen() const {
     return nameLen;
 }
 
-bool ItemBase::checkName(const char* data, size_t length, bool allLength) const {
-    if (allLength && (nameLen != length)) {
-        return false;
+ItemBase::Match ItemBase::checkName(const char* data) const {
+    uint8_t i = 0;
+    for (; i < nameLen; i++) {
+        if (data[i] != name[i]) {
+            break;
+        }
+
+        if (data[i] == ' ' || data[i] == '\0') {
+            break;
+        }
     }
 
-    if (length > nameLen) {
-        return false;
+    if (i == 0) {
+        return Match::NO;
     }
 
-    return std::memcmp(data, name, length) == 0;
+    if (i == nameLen) {
+        return Match::ALL;
+    }
+
+    return Match::PART;
+
+
+    // if (allLength && (nameLen != length)) {
+    //     return false;
+    // }
+
+    // if (length > nameLen) {
+    //     return false;
+    // }
+
+    // return std::memcmp(data, name, length) == 0 ? Match::ALL : Match::NO;
 }
