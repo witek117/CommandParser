@@ -9,7 +9,6 @@ void function() {
 }
 
 class PrintManagerMock : public PrintManager {
-
     virtual void printData(const char* s, uint8_t length) {
         (void)s;
         (void)length;

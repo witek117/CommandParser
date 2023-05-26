@@ -9,8 +9,8 @@ class CommandBase : public ItemBase {
     const uint8_t parametersCount   = 0;
 
   protected:
-    const char*     argsBegin                          = nullptr;
-    
+    const char* argsBegin = nullptr;
+
     virtual void    callback_handler(const char* data) = 0;
     virtual uint8_t getValuesInfo(char* buffer)        = 0;
 
@@ -20,7 +20,7 @@ class CommandBase : public ItemBase {
         const char* ptr       = argsBegin;
         while (true) {
             ptr = getNextArg(ptr);
-            if(ptr == nullptr) {
+            if (ptr == nullptr) {
                 break;
             }
             argsCount++;

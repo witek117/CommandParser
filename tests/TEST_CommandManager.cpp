@@ -16,10 +16,10 @@ void callback1(CommandBase& cmd, const char* data) {
 
 std::string trim(std::string data) {
     const char* notData = " \n\r\t";
-    auto start = data.find_first_not_of(notData);
-    auto stop = data.find_last_not_of(notData);
+    auto        start   = data.find_first_not_of(notData);
+    auto        stop    = data.find_last_not_of(notData);
 
-    if(start != std::string::npos &&  stop != std::string::npos) {
+    if (start != std::string::npos && stop != std::string::npos) {
         return data.substr(start, stop - start + 1);
     }
     return "";
@@ -48,10 +48,7 @@ bool writeFunction(const char* data, size_t length) {
     return false;
 }
 
-Config config {
-    .readFunction = readFunction,
-    .writeFunction = writeFunction
-};
+Config config{.readFunction = readFunction, .writeFunction = writeFunction};
 
 TEST(COMMAND_MANAGER, multiCommands) {
     Command jeden("jeden", "desc", callback1);
@@ -152,10 +149,10 @@ TEST(COMMAND_MANAGER, question) {
 }
 
 TEST(COMMAND_MANAGER, undefined) {
-    Command q4("n", "n", question4);
+    Command           q4("n", "n", question4);
     CommandManager<1> command_manager(config, {&q4});
 
-    
+
     command_manager.init();
 
     for (uint8_t i = 0; i < 6; i++) {
@@ -175,7 +172,7 @@ TEST(COMMAND_MANAGER, undefined) {
 
 
 TEST(COMMAND_MANAGER, print) {
-    Command q4("n", "n", question4);
+    Command           q4("n", "n", question4);
     CommandManager<1> command_manager(config, {&q4});
 
     command_manager.init();

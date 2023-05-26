@@ -6,10 +6,10 @@
 
 class ItemBase {
   protected:
-    const char* name;
-    size_t      nameLen;
-    const char* description;
-    size_t      descriptionLen;
+    const char*   name;
+    size_t        nameLen;
+    const char*   description;
+    size_t        descriptionLen;
     PrintManager* printer;
 
   public:
@@ -21,7 +21,7 @@ class ItemBase {
 
     static const char* getNextArg(const char* data, uint8_t& argSize);
 
-    ItemBase(const char* name, const char* description) : 
+    ItemBase(const char* name, const char* description) :
         name(name), nameLen(std::strlen(name)), description(description), descriptionLen(strlen(description)) {
     }
 
@@ -56,9 +56,7 @@ class ItemBase {
         return 1;
     }
 
-    enum class Match {
-        NO, ALL, PART
-    };
+    enum class Match { NO, ALL, PART };
 
     Match checkName(const char* data) const;
 };

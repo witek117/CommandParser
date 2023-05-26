@@ -184,7 +184,7 @@ void gatArgumentCount(CommandBase& cmd, int i, float j, char k) {
 TEST(COMMAND, gatArgumentCount) {
     int0 = 0;
     Command myCommand("myCommand", "desc", gatArgumentCount);
-    uint8_t parseDepth = 0;
+    uint8_t parseDepth     = 0;
     gatArgumentCountCalled = false;
     myCommand.parse(&mockPrint, (char*)"myCommand 7 3.43 hello", parseDepth);
 
