@@ -6,9 +6,9 @@
 #include "CommandSet.hpp"
 #include <array>
 
-#include "esp_log.h"
+// #include "esp_log.h"
 
-static const char* TAG = "manager";
+// static const char* TAG = "manager";
 
 struct Config {
     typedef bool (*write_function_t)(const char* data, size_t length);
@@ -27,13 +27,13 @@ class CommandManager : public PrintManager, ParseBuffer {
         SKIPPING,
     };
 
-    READING_STATE state          = READING_STATE::CLEAR;
-    uint8_t       skipping_index = 0;
-    Config        config;
+    READING_STATE state            = READING_STATE::CLEAR;
+    uint8_t       skipping_index   = 0;
     size_t        readBufferLength = 0;
     size_t        readBufferIndex  = 0;
     const char*   readBuffer       = nullptr;
 
+    Config            config;
     CommandSet<count> commandSet;
 
   public:
@@ -220,7 +220,7 @@ class CommandManager : public PrintManager, ParseBuffer {
     }
 
     void parse() {
-        ESP_LOGW(TAG, "parse %d, %s", ParseBuffer::size(), ParseBuffer::get());
+        // ESP_LOGW(TAG, "parse %d, %s", ParseBuffer::size(), ParseBuffer::get());
 
         print("\n\r");
         uint8_t temporaryParseDepth = 0;

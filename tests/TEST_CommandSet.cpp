@@ -1,11 +1,22 @@
 #include <CommandSet.hpp>
 #include <Command.hpp>
+#include <PrintManager.hpp>
 
 #include <gmock/gmock.h>
 #include <vector>
 
 void function() {
 }
+
+class PrintManagerMock : public PrintManager {
+
+    virtual void printData(const char* s, uint8_t length) {
+        (void)s;
+        (void)length;
+    }
+};
+
+static PrintManagerMock mockPrint;
 
 TEST(COMMANDSET, checkName) {
     Command myCommand(
@@ -16,9 +27,9 @@ TEST(COMMANDSET, checkName) {
         });
     CommandSet<1> commandSet("new_cmd", "description", {&myCommand});
 
-    EXPECT_TRUE(commandSet.checkName("new", 3));
-    EXPECT_FALSE(commandSet.checkName("new", 3, true));
-    EXPECT_TRUE(commandSet.checkName("new_cmd", 7, true));
+    EXPECT_TRUE(commandSet.checkName("new") == ItemBase::Match::PART);
+    EXPECT_TRUE(commandSet.checkName("new_cmd") == ItemBase::Match::ALL);
+    EXPECT_TRUE(commandSet.checkName("test") == ItemBase::Match::NO);
 }
 
 TEST(COMMANDSET, parse) {
@@ -38,13 +49,13 @@ TEST(COMMANDSET, parse) {
 
     uint8_t parseDepth = 0;
 
-    auto retVal = commandSet.parse("commandSet", 10, parseDepth);
+    auto retVal = commandSet.parse(&mockPrint, "commandSet", parseDepth);
 
     EXPECT_FALSE(retVal);
     EXPECT_EQ(parseDepth, 1);
 
     parseDepth   = 0;
-    auto retVal2 = commandSet.parse("commandSet command1", 10, parseDepth);
+    auto retVal2 = commandSet.parse(&mockPrint, "commandSet command1", parseDepth);
     EXPECT_EQ(parseDepth, 2);
     EXPECT_TRUE(retVal2);
 
@@ -57,17 +68,17 @@ TEST(COMMANDSET, parse) {
     CommandSet<2> commandSet2("commandSet2", "description", {&commandSet, &command3});
 
     parseDepth   = 0;
-    auto retVal3 = commandSet2.parse("commandSet2 commandSet command1", 11, parseDepth);
+    auto retVal3 = commandSet2.parse(&mockPrint, "commandSet2 commandSet command1", parseDepth);
     EXPECT_EQ(parseDepth, 3);
     EXPECT_TRUE(retVal3);
 
     parseDepth   = 0;
-    auto retVal4 = commandSet2.parse("commandSet2 command3", 11, parseDepth);
+    auto retVal4 = commandSet2.parse(&mockPrint, "commandSet2 command3", parseDepth);
     EXPECT_EQ(parseDepth, 2);
     EXPECT_TRUE(retVal4);
 
     parseDepth   = 0;
-    auto retVal5 = commandSet2.parse("commandSet2 commandSet command", 11, parseDepth);
+    auto retVal5 = commandSet2.parse(&mockPrint, "commandSet2 commandSet command", parseDepth);
     EXPECT_EQ(parseDepth, 2);
     EXPECT_FALSE(retVal5);
 }

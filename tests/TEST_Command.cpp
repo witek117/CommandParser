@@ -8,6 +8,15 @@ static int   int0       = 0;
 static float float0     = 0.0f;
 static char  char0      = '0';
 
+class PrintManagerMock : public PrintManager {
+    virtual void printData(const char* s, uint8_t length) {
+        (void)s;
+        (void)length;
+    }
+};
+
+static PrintManagerMock mockPrint;
+
 void oneInt(CommandBase& cmd, int data) {
     (void)cmd;
     int0 = data;
@@ -17,7 +26,7 @@ TEST(COMMAND, commandInt) {
     Command myInt("myInt", "desc", oneInt);
     uint8_t parseDepth = 0;
 
-    myInt.parse((char*)"myInt 5", 5, parseDepth);
+    myInt.parse(&mockPrint, (char*)"myInt 5", parseDepth);
 
     EXPECT_EQ(int0, 5);
     EXPECT_EQ(parseDepth, 1);
@@ -39,7 +48,7 @@ TEST(COMMAND, commandIntFloat) {
 
     uint8_t parseDepth = 0;
 
-    myInt.parse((char*)"myInt 5 2.54", 5, parseDepth);
+    myInt.parse(&mockPrint, (char*)"myInt 5 2.54", parseDepth);
 
     EXPECT_EQ(int0, 5);
     EXPECT_EQ(float0, 2.54f);
@@ -63,7 +72,7 @@ TEST(COMMAND, commandIntFloatChar) {
 
     uint8_t parseDepth = 0;
 
-    myInt.parse((char*)"myInt 5 2.54 i", 5, parseDepth);
+    myInt.parse(&mockPrint, (char*)"myInt 5 2.54 i", parseDepth);
 
     EXPECT_EQ(int0, 5);
     EXPECT_EQ(float0, 2.54f);
@@ -81,7 +90,7 @@ TEST(COMMAND, commandIntFloatCharMissingArg) {
 
     uint8_t parseDepth = 0;
 
-    myInt.parse((char*)"myInt 6 2.57", 5, parseDepth);
+    myInt.parse(&mockPrint, (char*)"myInt 6 2.57", parseDepth);
 
     EXPECT_EQ(int0, 6);
     EXPECT_EQ(float0, 2.57f);
@@ -112,7 +121,7 @@ TEST(COMMAND, commandChar) {
     memset(buffer, 0, sizeof(buffer));
     Command myCommand("myCommand", "desc", myCommandCallback);
     uint8_t parseDepth = 0;
-    myCommand.parse((char*)"myCommand command", 9, parseDepth);
+    myCommand.parse(&mockPrint, (char*)"myCommand command", parseDepth);
     EXPECT_STREQ(buffer, "command");
     EXPECT_EQ(parseDepth, 1);
 
@@ -131,7 +140,7 @@ TEST(COMMAND, commandVoid) {
     int0 = 0;
     Command myCommand("myCommand", "desc", voidCallback);
     uint8_t parseDepth = 0;
-    myCommand.parse((char*)"myCommand", 9, parseDepth);
+    myCommand.parse(&mockPrint, (char*)"myCommand", parseDepth);
     EXPECT_EQ(int0, 10);
     EXPECT_EQ(parseDepth, 1);
 
@@ -155,7 +164,7 @@ TEST(COMMAND, commandIntFloatCharMissing) {
 
     uint8_t parseDepth = 0;
 
-    myInt.parse((char*)"missing", 7, parseDepth);
+    myInt.parse(&mockPrint, (char*)"missing", parseDepth);
 
     EXPECT_EQ(int0, 0);
     EXPECT_EQ(float0, 0.0f);
@@ -177,7 +186,7 @@ TEST(COMMAND, gatArgumentCount) {
     Command myCommand("myCommand", "desc", gatArgumentCount);
     uint8_t parseDepth = 0;
     gatArgumentCountCalled = false;
-    myCommand.parse((char*)"myCommand 7 3.43 hello", 9, parseDepth);
+    myCommand.parse(&mockPrint, (char*)"myCommand 7 3.43 hello", parseDepth);
 
     EXPECT_TRUE(gatArgumentCountCalled);
 }

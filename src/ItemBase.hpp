@@ -51,6 +51,8 @@ class ItemBase {
         print.print('\t');
         print.print(getDescription());
         print.print("\n\r");
+        (void)data;
+        (void)length;
         return 1;
     }
 

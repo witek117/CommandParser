@@ -3,7 +3,7 @@
 #include "ItemBase.hpp"
 #include "PrintManager.hpp"
 #include <array>
-#include "esp_log.h"
+// #include "esp_log.h"
 
 class CommandSetBase : public ItemBase {
   public:
@@ -45,6 +45,10 @@ class CommandSet : public CommandSetBase {
     }
 
     int printHints(PrintManager& print, char* data, size_t length) {
+        (void)print;
+        (void)data;
+        (void)length;
+
         uint8_t match_commands = 0;
         // uint8_t found_index    = 0;
 
