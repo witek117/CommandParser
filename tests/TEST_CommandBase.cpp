@@ -19,3 +19,44 @@ TEST(COMMANDBASE, get) {
     auto [x3] = CommandBase::get<int>("2345");
     EXPECT_EQ(x3, 2345);
 }
+
+
+class MockCommandBase : public CommandBase {
+  public:
+    void setArgs(const char* args) {
+        argsBegin = args;
+    }
+
+    MockCommandBase(uint8_t argsCount) : CommandBase("", "", false, argsCount) {
+    }
+
+    virtual void callback_handler(const char* data) {
+        (void)data;
+    }
+
+    virtual uint8_t getValuesInfo(char* buffer) {
+        (void)buffer;
+        return 0;
+    }
+};
+
+TEST(COMMANDBASE, getArgCount) {
+    MockCommandBase command(3);
+
+    command.setArgs("ab cd ef gh");
+    EXPECT_EQ(command.getArgCount(), 4);
+
+    command.setArgs("ab cd ef");
+    EXPECT_EQ(command.getArgCount(), 3);
+
+    command.setArgs("  ab cd ef");
+    EXPECT_EQ(command.getArgCount(), 3);
+    EXPECT_TRUE(command.checkArgsCount());
+
+    command.setArgs("  ab cd ef  ");
+    EXPECT_EQ(command.getArgCount(), 3);
+
+    command.setArgs(" a bc def ghij     ");
+    EXPECT_EQ(command.getArgCount(), 4);
+    EXPECT_FALSE(command.checkArgsCount());
+}

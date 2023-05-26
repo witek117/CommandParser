@@ -7,30 +7,36 @@
 class CommandBase : public ItemBase {
     const bool    shouldReturnValue = false;
     const uint8_t parametersCount   = 0;
-    const char*   argsBegin         = nullptr;
 
   protected:
+    const char*     argsBegin                          = nullptr;
+    
     virtual void    callback_handler(const char* data) = 0;
     virtual uint8_t getValuesInfo(char* buffer)        = 0;
 
   public:
-    uint8_t getArgCount() {
+    uint8_t getArgCount() const {
         uint8_t     argsCount = 0;
         const char* ptr       = argsBegin;
         while (true) {
-            if (*ptr == ' ') {
-                argsCount++;
-            }
-            if (*ptr == '\0') {
-                argsCount++;
+            ptr = getNextArg(ptr);
+            if(ptr == nullptr) {
                 break;
             }
+            argsCount++;
             ptr++;
+
+            while (true) {
+                if (*ptr == ' ' || *ptr == '\0') {
+                    break;
+                }
+                ptr++;
+            }
         }
         return argsCount;
     };
 
-    bool checkArgsCount() {
+    bool checkArgsCount() const {
         return getArgCount() == parametersCount;
     }
 
