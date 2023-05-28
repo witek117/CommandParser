@@ -1,11 +1,11 @@
 cmake_minimum_required(VERSION 3.20)
-  
+
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     project(CommandParser CXX C)
 
     # GoogleTest requires at least C++11
     set(CMAKE_CXX_STANDARD 17)
-    
+
     add_subdirectory(src)
 
     include(FetchContent)
@@ -21,9 +21,9 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     enable_testing()
 
     add_executable(CommandParser_unitTests
+            tests/helper.cpp
             tests/TEST_Command.cpp
-            tests/TEST_CommandManager.cpp
-            # tests/TEST_StreamCommandManager.cpp
+            tests/TEST_Shell.cpp
             tests/TEST_Parser.cpp
             tests/TEST_CommandSet.cpp
             tests/TEST_PrintManager.cpp
@@ -37,6 +37,8 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
         gmock
         CommandParser
     )
+
+    target_include_directories(CommandParser_unitTests PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 
     include(GoogleTest)
     gtest_discover_tests(CommandParser_unitTests)

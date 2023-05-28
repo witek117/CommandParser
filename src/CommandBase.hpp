@@ -15,7 +15,7 @@ class CommandBase : public ItemBase {
     virtual uint8_t getValuesInfo(char* buffer)        = 0;
 
   public:
-    uint8_t getArgCount() const {
+    uint8_t getArgsCount() const {
         uint8_t     argsCount = 0;
         const char* ptr       = argsBegin;
         while (true) {
@@ -37,10 +37,8 @@ class CommandBase : public ItemBase {
     };
 
     bool checkArgsCount() const {
-        return getArgCount() == parametersCount;
+        return getArgsCount() == parametersCount;
     }
-
-    virtual uint8_t getInfo(char* buffer, size_t bufferLength);
 
     CommandBase(const char* name, const char* description, bool shouldReturnValue, uint8_t parametersCount) :
         ItemBase(name, description), shouldReturnValue(shouldReturnValue), parametersCount(parametersCount) {

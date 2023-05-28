@@ -1,4 +1,4 @@
-# CommandParser 
+# CommandParser
 Project CLI to parse string commands
 
 ### How to use?
@@ -36,7 +36,7 @@ command_manager.run();
 
 stream can be UART peripherial from microcontroler
 
-Command 
+Command
 
 To call a callback function you can run:
 
@@ -60,4 +60,4 @@ c2 123'\n'
 c3 5.321 123'\n'
 ```
 
-Each command have to be terminated with '\n' character 
+Each command have to be terminated with '\n' character

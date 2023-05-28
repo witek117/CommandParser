@@ -1,6 +1,7 @@
 #pragma once
 
 #include "PrintManager.hpp"
+#include "ParseBuffer.hpp"
 #include <cstdint>
 #include <cstring>
 
@@ -32,11 +33,11 @@ class ItemBase {
 
     size_t getNameLen() const;
 
-
-    virtual uint8_t getInfo(char* buffer, size_t bufferLength) {
-        (void)buffer;
-        (void)bufferLength;
-        return 0;
+    void getInfo(PrintManager& print) {
+        print.print(getName());
+        print.print('\t');
+        print.print(getDescription());
+        print.print("\n\r");
     }
 
     virtual bool parse(PrintManager* print, const char* data, uint8_t& parseDepth) {
@@ -46,13 +47,10 @@ class ItemBase {
         return false;
     }
 
-    virtual int printHints(PrintManager& print, char* data, size_t length) {
-        print.print(getName());
-        print.print('\t');
-        print.print(getDescription());
-        print.print("\n\r");
-        (void)data;
-        (void)length;
+    virtual int printHints(PrintManager& print, ParseBuffer& buffer, uint8_t& depth) {
+        getInfo(print);
+        (void)buffer;
+        (void)depth;
         return 1;
     }
 

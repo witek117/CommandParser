@@ -1,9 +1,7 @@
-// #include "Stream.h"
-#include "CommandManager.hpp"
+#include "Shell.hpp"
 #include "Command.hpp"
+#include "helper.hpp"
 #include <gmock/gmock.h>
-
-// static Stream stream;
 
 char data_table[3][100];
 
@@ -12,17 +10,6 @@ void callback1(CommandBase& cmd, const char* data) {
     static int data_len = 0;
     strcpy(data_table[data_len], data);
     data_len++;
-}
-
-std::string trim(std::string data) {
-    const char* notData = " \n\r\t";
-    auto        start   = data.find_first_not_of(notData);
-    auto        stop    = data.find_last_not_of(notData);
-
-    if (start != std::string::npos && stop != std::string::npos) {
-        return data.substr(start, stop - start + 1);
-    }
-    return "";
 }
 
 using ::testing::StrictMock;
@@ -38,8 +25,6 @@ const char* readFunction(size_t& length) {
     transmitted.clear();
 
     length = myData.size();
-    // std::cout << "myData" << std::endl;
-    // std::cout << myData << std::endl;
     return myData.c_str();
 }
 
@@ -48,13 +33,13 @@ bool writeFunction(const char* data, size_t length) {
     return false;
 }
 
-Config config{.readFunction = readFunction, .writeFunction = writeFunction};
+ShellBase::Config config{.readFunction = readFunction, .writeFunction = writeFunction};
 
 TEST(COMMAND_MANAGER, multiCommands) {
     Command jeden("jeden", "desc", callback1);
     Command dwa("dwa", "desc", callback1);
 
-    CommandManager<2> command_manager(config, {&jeden, &dwa});
+    Shell<2> command_manager(config, {&jeden, &dwa});
 
     command_manager.init();
 
@@ -82,7 +67,7 @@ void twoFloats(CommandBase& cmd, const char* data) {
 TEST(COMMAND_MANAGER, twoFloats) {
     Command floats("floats", "desc", twoFloats);
 
-    CommandManager<1> command_manager(config, {&floats});
+    Shell<1> command_manager(config, {&floats});
 
     command_manager.init();
 
@@ -129,7 +114,7 @@ TEST(COMMAND_MANAGER, question) {
     Command q3("t", "t", question3);
     Command q4("n", "n", question4);
 
-    CommandManager<4> command_manager(config, {&q1, &q2, &q3, &q4});
+    Shell<4> command_manager(config, {&q1, &q2, &q3, &q4});
 
     command_manager.init();
 
@@ -149,8 +134,8 @@ TEST(COMMAND_MANAGER, question) {
 }
 
 TEST(COMMAND_MANAGER, undefined) {
-    Command           q4("n", "n", question4);
-    CommandManager<1> command_manager(config, {&q4});
+    Command  q4("n", "n", question4);
+    Shell<1> command_manager(config, {&q4});
 
 
     command_manager.init();
@@ -159,7 +144,7 @@ TEST(COMMAND_MANAGER, undefined) {
         command_manager.run();
     }
 
-    EXPECT_EQ(trim(received), std::string(""));
+    EXPECT_EQ(helper::trim(received), std::string(""));
 
     transmitted.append("t 1\n");
 
@@ -167,13 +152,13 @@ TEST(COMMAND_MANAGER, undefined) {
         command_manager.run();
     }
 
-    EXPECT_EQ(trim(received), std::string("undefined"));
+    EXPECT_EQ(helper::trim(received), std::string("undefined"));
 }
 
 
 TEST(COMMAND_MANAGER, print) {
-    Command           q4("n", "n", question4);
-    CommandManager<1> command_manager(config, {&q4});
+    Command  q4("n", "n", question4);
+    Shell<1> command_manager(config, {&q4});
 
     command_manager.init();
 
@@ -221,7 +206,7 @@ TEST(COMMAND_MANAGER, print) {
 //     Command info0("info0", "desc0", info0Callback);
 //     Command info1("info1", "desc1", info1Callback);
 //     Command info2("info2", "desc2", info2Callback);
-//     CommandManager<3> command_manager({&info0, info1, info2}, readFunction, writeFunction);
+//     Shell<3> command_manager({&info0, info1, info2}, readFunction, writeFunction);
 //     command_manager.init();
 
 //     std::string compareString;
@@ -255,7 +240,7 @@ TEST(COMMAND_MANAGER, print) {
 // }
 
 // TEST(COMMAND_MANAGER, getInfoDifferentValues) {
-//     CommandManager<5> command_manager(stream);
+//     Shell<5> command_manager(stream);
 //     command_manager.init();
 
 //     char names[5][10]       = {"info0", "info1", "info2", "info3", "info4"};

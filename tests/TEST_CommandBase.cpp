@@ -44,19 +44,19 @@ TEST(COMMANDBASE, getArgCount) {
     MockCommandBase command(3);
 
     command.setArgs("ab cd ef gh");
-    EXPECT_EQ(command.getArgCount(), 4);
+    EXPECT_EQ(command.getArgsCount(), 4);
 
     command.setArgs("ab cd ef");
-    EXPECT_EQ(command.getArgCount(), 3);
+    EXPECT_EQ(command.getArgsCount(), 3);
 
     command.setArgs("  ab cd ef");
-    EXPECT_EQ(command.getArgCount(), 3);
+    EXPECT_EQ(command.getArgsCount(), 3);
     EXPECT_TRUE(command.checkArgsCount());
 
     command.setArgs("  ab cd ef  ");
-    EXPECT_EQ(command.getArgCount(), 3);
+    EXPECT_EQ(command.getArgsCount(), 3);
 
     command.setArgs(" a bc def ghij     ");
-    EXPECT_EQ(command.getArgCount(), 4);
+    EXPECT_EQ(command.getArgsCount(), 4);
     EXPECT_FALSE(command.checkArgsCount());
 }

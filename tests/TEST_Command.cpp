@@ -1,4 +1,5 @@
 #include <Command.hpp>
+#include <helper.hpp>
 
 #include <gmock/gmock.h>
 #include <vector>
@@ -8,14 +9,7 @@ static int   int0       = 0;
 static float float0     = 0.0f;
 static char  char0      = '0';
 
-class PrintManagerMock : public PrintManager {
-    virtual void printData(const char* s, uint8_t length) {
-        (void)s;
-        (void)length;
-    }
-};
-
-static PrintManagerMock mockPrint;
+static helper::PrintManagerMock mockPrint;
 
 void oneInt(CommandBase& cmd, int data) {
     (void)cmd;
@@ -152,11 +146,12 @@ TEST(COMMAND, commandVoid) {
 
 TEST(COMMAND, getInfo) {
     int0 = 0;
-    Command myCommand("myCommand", "desc", voidCallback);
+    Command                  myCommand("myCommand", "desc", voidCallback);
+    helper::PrintManagerMock mockPrint;
 
-    memset(buffer, 0, sizeof(buffer));
-    myCommand.getInfo(buffer, sizeof(buffer));
-    // EXPECT_STREQ(buffer, "myCommand\tv\tf");
+    myCommand.getInfo(mockPrint);
+
+    EXPECT_STREQ(mockPrint.get().c_str(), "myCommand\tdesc\n\r");
 }
 
 TEST(COMMAND, commandIntFloatCharMissing) {
@@ -177,7 +172,7 @@ void gatArgumentCount(CommandBase& cmd, int i, float j, char k) {
     (void)i;
     (void)j;
     (void)k;
-    EXPECT_EQ(cmd.getArgCount(), 3);
+    EXPECT_EQ(cmd.getArgsCount(), 3);
     gatArgumentCountCalled = true;
 }
 

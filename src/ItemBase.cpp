@@ -60,19 +60,8 @@ ItemBase::Match ItemBase::checkName(const char* data) const {
     }
 
     if (i == nameLen) {
-        return Match::ALL;
+        return (data[nameLen] != '\0' && data[nameLen] != ' ') ? Match::NO : Match::ALL;
     }
 
     return Match::PART;
-
-
-    // if (allLength && (nameLen != length)) {
-    //     return false;
-    // }
-
-    // if (length > nameLen) {
-    //     return false;
-    // }
-
-    // return std::memcmp(data, name, length) == 0 ? Match::ALL : Match::NO;
 }
