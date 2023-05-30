@@ -20,21 +20,20 @@ TEST(COMMANDBASE, get) {
     EXPECT_EQ(x3, 2345);
 }
 
-
 class MockCommandBase : public CommandBase {
   public:
-    void setArgs(const char* args) {
-        argsBegin = args;
+    void set_args(const char* args) {
+        args_begin = args;
     }
 
-    MockCommandBase(uint8_t argsCount) : CommandBase("", "", false, argsCount) {
+    MockCommandBase(uint8_t args_count) : CommandBase("", "", false, args_count) {
     }
 
     virtual void callback_handler(const char* data) {
         (void)data;
     }
 
-    virtual uint8_t getValuesInfo(char* buffer) {
+    virtual uint8_t get_values_info(char* buffer) {
         (void)buffer;
         return 0;
     }
@@ -43,20 +42,20 @@ class MockCommandBase : public CommandBase {
 TEST(COMMANDBASE, getArgCount) {
     MockCommandBase command(3);
 
-    command.setArgs("ab cd ef gh");
-    EXPECT_EQ(command.getArgsCount(), 4);
+    command.set_args("ab cd ef gh");
+    EXPECT_EQ(command.get_args_count(), 4);
 
-    command.setArgs("ab cd ef");
-    EXPECT_EQ(command.getArgsCount(), 3);
+    command.set_args("ab cd ef");
+    EXPECT_EQ(command.get_args_count(), 3);
 
-    command.setArgs("  ab cd ef");
-    EXPECT_EQ(command.getArgsCount(), 3);
-    EXPECT_TRUE(command.checkArgsCount());
+    command.set_args("  ab cd ef");
+    EXPECT_EQ(command.get_args_count(), 3);
+    EXPECT_TRUE(command.check_args_count());
 
-    command.setArgs("  ab cd ef  ");
-    EXPECT_EQ(command.getArgsCount(), 3);
+    command.set_args("  ab cd ef  ");
+    EXPECT_EQ(command.get_args_count(), 3);
 
-    command.setArgs(" a bc def ghij     ");
-    EXPECT_EQ(command.getArgsCount(), 4);
-    EXPECT_FALSE(command.checkArgsCount());
+    command.set_args(" a bc def ghij     ");
+    EXPECT_EQ(command.get_args_count(), 4);
+    EXPECT_FALSE(command.check_args_count());
 }

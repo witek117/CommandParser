@@ -17,9 +17,9 @@ class Command : public CommandBase {
     }
 
   public:
-    uint8_t getValuesInfo(char* buffer) override {
+    uint8_t get_values_info(char* buffer) override {
         if constexpr (sizeof...(T) > 0) {
-            return checkType<T...>(buffer, 0);
+            return check_type<T...>(buffer, 0);
         } else {
             buffer[0] = 'v';
             return 1;

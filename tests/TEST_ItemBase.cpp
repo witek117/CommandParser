@@ -4,7 +4,7 @@
 #include <vector>
 
 class PrintManagerMock : public PrintManager {
-    virtual void printData(const char* s, uint8_t length) {
+    virtual void print_data(const char* s, uint8_t length) {
         (void)s;
         (void)length;
     }
@@ -15,9 +15,9 @@ static PrintManagerMock mockPrint;
 TEST(ITEMBASE, checkName) {
     ItemBase item("new_item", "description");
 
-    EXPECT_TRUE(item.checkName("new") == ItemBase::Match::PART);
-    EXPECT_TRUE(item.checkName("new_item") == ItemBase::Match::ALL);
-    EXPECT_TRUE(item.checkName("test") == ItemBase::Match::NO);
+    EXPECT_TRUE(item.check_name("new") == ItemBase::Match::PART);
+    EXPECT_TRUE(item.check_name("new_item") == ItemBase::Match::ALL);
+    EXPECT_TRUE(item.check_name("test") == ItemBase::Match::NO);
 }
 
 TEST(ITEMBASE, getNextArg) {
@@ -26,15 +26,15 @@ TEST(ITEMBASE, getNextArg) {
     uint8_t argLen;
 
     const char* buff1 = "  test1  ";
-    EXPECT_EQ(item.getNextArg(buff1, argLen), &buff1[2]);
+    EXPECT_EQ(item.get_arg(buff1, argLen), &buff1[2]);
     EXPECT_EQ(argLen, 5);
 
     const char* buff2 = "";
-    EXPECT_EQ(item.getNextArg(buff2, argLen), nullptr);
+    EXPECT_EQ(item.get_arg(buff2, argLen), nullptr);
     EXPECT_EQ(argLen, 0);
 
     const char* buff3 = "test3";
-    EXPECT_EQ(item.getNextArg(buff3, argLen), buff3);
+    EXPECT_EQ(item.get_arg(buff3, argLen), buff3);
     EXPECT_EQ(argLen, 5);
 }
 

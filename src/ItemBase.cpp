@@ -1,6 +1,6 @@
 #include "ItemBase.hpp"
 
-const char* ItemBase::getNextArg(const char* data) {
+const char* ItemBase::get_arg(const char* data) {
     if (data == nullptr) {
         return nullptr;
     }
@@ -19,9 +19,9 @@ const char* ItemBase::getNextArg(const char* data) {
     return ptr;
 }
 
-const char* ItemBase::getNextArg(const char* data, uint8_t& argSize) {
+const char* ItemBase::get_arg(const char* data, uint8_t& argSize) {
     argSize         = 0;
-    const char* ptr = getNextArg(data);
+    const char* ptr = get_arg(data);
     if (ptr == nullptr) {
         return nullptr;
     }
@@ -35,15 +35,15 @@ const char* ItemBase::getNextArg(const char* data, uint8_t& argSize) {
     return nullptr;
 }
 
-const char* ItemBase::getName() const {
+const char* ItemBase::get_name() const {
     return name;
 }
 
-size_t ItemBase::getNameLen() const {
+size_t ItemBase::get_name_len() const {
     return nameLen;
 }
 
-ItemBase::Match ItemBase::checkName(const char* data) const {
+ItemBase::Match ItemBase::check_name(const char* data) const {
     uint8_t i = 0;
     for (; i < nameLen; i++) {
         if (data[i] != name[i]) {

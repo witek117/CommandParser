@@ -2,11 +2,11 @@
 
 size_t PrintManager::print(const char s[]) {
     size_t length = strlen(s);
-    printData(s, length);
+    print_data(s, length);
     return length;
 }
 
-void PrintManager::parseValue(uint32_t value, uint8_t buffIndexEnd) {
+void PrintManager::parse_value(uint32_t value, uint8_t buffIndexEnd) {
     i = buffIndexEnd;
     if (value == 0) {
         buff[i] = '0';
@@ -23,30 +23,30 @@ void PrintManager::parseValue(uint32_t value, uint8_t buffIndexEnd) {
     }
 }
 
-void PrintManager::printBuffer() {
-    printData(buff + i, BUFF_SIZE - i);
+void PrintManager::print_buffer() {
+    print_data(buff + i, BUFF_SIZE - i);
 }
 
-void PrintManager::addMinus() {
+void PrintManager::add_minus() {
     buff[--i] = '-';
 }
 
 void PrintManager::print(uint32_t value) {
-    parseValue(value);
-    printBuffer();
+    parse_value(value);
+    print_buffer();
 }
 
 void PrintManager::print(uint16_t value) {
-    parseValue((uint32_t)value);
-    printBuffer();
+    parse_value((uint32_t)value);
+    print_buffer();
 }
 
 void PrintManager::print(int32_t value) {
-    parseValue((uint32_t)std::abs(value));
+    parse_value((uint32_t)std::abs(value));
     if (value < 0) {
-        addMinus();
+        add_minus();
     }
-    printBuffer();
+    print_buffer();
 }
 
 void PrintManager::print(int16_t value) {
@@ -57,7 +57,7 @@ void PrintManager::print(float value) {
     memset(buff, 0, BUFF_SIZE);
     float        tempValue = std::abs(value);
     unsigned int valueInt  = static_cast<unsigned int>(tempValue + 0.01);
-    parseValue(valueInt, BUFF_SIZE - 4);
+    parse_value(valueInt, BUFF_SIZE - 4);
 
     tempValue -= valueInt;
     tempValue *= 100.0f;
@@ -73,7 +73,7 @@ void PrintManager::print(float value) {
     buff[BUFF_SIZE - 1] = (valueInt % 10) + '0';
 
     if (value < 0.0f) {
-        addMinus();
+        add_minus();
     }
-    printBuffer();
+    print_buffer();
 }

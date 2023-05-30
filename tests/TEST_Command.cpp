@@ -26,7 +26,7 @@ TEST(COMMAND, commandInt) {
     EXPECT_EQ(parseDepth, 1);
 
     memset(buffer, 0, sizeof(buffer));
-    uint8_t len = myInt.getValuesInfo(buffer);
+    uint8_t len = myInt.get_values_info(buffer);
     EXPECT_STREQ(buffer, "i");
     EXPECT_EQ(len, 1);
 }
@@ -49,7 +49,7 @@ TEST(COMMAND, commandIntFloat) {
     EXPECT_EQ(parseDepth, 1);
 
     memset(buffer, 0, sizeof(buffer));
-    uint8_t len = myInt.getValuesInfo(buffer);
+    uint8_t len = myInt.get_values_info(buffer);
     EXPECT_STREQ(buffer, "if");
     EXPECT_EQ(len, 2);
 }
@@ -74,7 +74,7 @@ TEST(COMMAND, commandIntFloatChar) {
     EXPECT_EQ(parseDepth, 1);
 
     memset(buffer, 0, sizeof(buffer));
-    uint8_t len = myInt.getValuesInfo(buffer);
+    uint8_t len = myInt.get_values_info(buffer);
     EXPECT_STREQ(buffer, "ifc");
     EXPECT_EQ(len, 3);
 }
@@ -101,7 +101,7 @@ TEST(COMMAND, commandDouble) {
     Command doubleCommand("myInt", "desc", doubleCallbakc);
 
     memset(buffer, 0, sizeof(buffer));
-    uint8_t len = doubleCommand.getValuesInfo(buffer);
+    uint8_t len = doubleCommand.get_values_info(buffer);
     EXPECT_STREQ(buffer, "ddd");
     EXPECT_EQ(len, 3);
 }
@@ -120,7 +120,7 @@ TEST(COMMAND, commandChar) {
     EXPECT_EQ(parseDepth, 1);
 
     memset(buffer, 0, sizeof(buffer));
-    uint8_t len = myCommand.getValuesInfo(buffer);
+    uint8_t len = myCommand.get_values_info(buffer);
     EXPECT_STREQ(buffer, "c*");
     EXPECT_EQ(len, 2);
 }
@@ -139,7 +139,7 @@ TEST(COMMAND, commandVoid) {
     EXPECT_EQ(parseDepth, 1);
 
     memset(buffer, 0, sizeof(buffer));
-    uint8_t len = myCommand.getValuesInfo(buffer);
+    uint8_t len = myCommand.get_values_info(buffer);
     EXPECT_STREQ(buffer, "v");
     EXPECT_EQ(len, 1);
 }
@@ -149,7 +149,7 @@ TEST(COMMAND, getInfo) {
     Command                  myCommand("myCommand", "desc", voidCallback);
     helper::PrintManagerMock mockPrint;
 
-    myCommand.getInfo(mockPrint);
+    myCommand.get_info(mockPrint);
 
     EXPECT_STREQ(mockPrint.get().c_str(), "myCommand\tdesc\n\r");
 }
@@ -172,7 +172,7 @@ void gatArgumentCount(CommandBase& cmd, int i, float j, char k) {
     (void)i;
     (void)j;
     (void)k;
-    EXPECT_EQ(cmd.getArgsCount(), 3);
+    EXPECT_EQ(cmd.get_args_count(), 3);
     gatArgumentCountCalled = true;
 }
 

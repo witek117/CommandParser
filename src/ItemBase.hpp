@@ -14,29 +14,29 @@ class ItemBase {
     PrintManager* printer;
 
   public:
-    PrintManager* getPrinter() {
+    PrintManager* get_printer() const {
         return printer;
     }
 
-    static const char* getNextArg(const char* data);
+    static const char* get_arg(const char* data);
 
-    static const char* getNextArg(const char* data, uint8_t& argSize);
+    static const char* get_arg(const char* data, uint8_t& argSize);
 
     ItemBase(const char* name, const char* description) :
         name(name), nameLen(std::strlen(name)), description(description), descriptionLen(strlen(description)) {
     }
 
-    const char* getName() const;
-    const char* getDescription() const {
+    const char* get_name() const;
+    const char* get_description() const {
         return description;
     }
 
-    size_t getNameLen() const;
+    size_t get_name_len() const;
 
-    void getInfo(PrintManager& print) {
-        print.print(getName());
+    void get_info(PrintManager& print) {
+        print.print(get_name());
         print.print('\t');
-        print.print(getDescription());
+        print.print(get_description());
         print.print("\n\r");
     }
 
@@ -47,8 +47,8 @@ class ItemBase {
         return false;
     }
 
-    virtual int printHints(PrintManager& print, ParseBuffer& buffer, uint8_t& depth) {
-        getInfo(print);
+    virtual int print_hints(PrintManager& print, ParseBuffer& buffer, uint8_t& depth) {
+        get_info(print);
         (void)buffer;
         (void)depth;
         return 1;
@@ -56,5 +56,5 @@ class ItemBase {
 
     enum class Match { NO, ALL, PART };
 
-    Match checkName(const char* data) const;
+    Match check_name(const char* data) const;
 };

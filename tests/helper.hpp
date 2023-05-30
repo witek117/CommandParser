@@ -1,6 +1,7 @@
 #include <vector>
 #include <string>
 #include <PrintManager.hpp>
+#include "CommandBase.hpp"
 
 namespace helper {
     std::vector<std::string> split(std::string s, std::string delimiter);
@@ -12,7 +13,7 @@ namespace helper {
     class PrintManagerMock : public PrintManager {
       public:
         std::string  received;
-        virtual void printData(const char* s, uint8_t length) {
+        virtual void print_data(const char* s, uint8_t length) {
             for (int i = 0; i < length; i++) {
                 received.push_back(s[i]);
             }

@@ -9,17 +9,17 @@ class CommandBase : public ItemBase {
     const uint8_t parametersCount   = 0;
 
   protected:
-    const char* argsBegin = nullptr;
+    const char* args_begin = nullptr;
 
     virtual void    callback_handler(const char* data) = 0;
-    virtual uint8_t getValuesInfo(char* buffer)        = 0;
+    virtual uint8_t get_values_info(char* buffer)      = 0;
 
   public:
-    uint8_t getArgsCount() const {
+    uint8_t get_args_count() const {
         uint8_t     argsCount = 0;
-        const char* ptr       = argsBegin;
+        const char* ptr       = args_begin;
         while (true) {
-            ptr = getNextArg(ptr);
+            ptr = get_arg(ptr);
             if (ptr == nullptr) {
                 break;
             }
@@ -36,15 +36,15 @@ class CommandBase : public ItemBase {
         return argsCount;
     };
 
-    bool checkArgsCount() const {
-        return getArgsCount() == parametersCount;
+    bool check_args_count() const {
+        return get_args_count() == parametersCount;
     }
 
     CommandBase(const char* name, const char* description, bool shouldReturnValue, uint8_t parametersCount) :
         ItemBase(name, description), shouldReturnValue(shouldReturnValue), parametersCount(parametersCount) {
     }
 
-    virtual bool parse(PrintManager* print, const char* data, uint8_t& parseDepth) override;
+    virtual bool parse(PrintManager* print, const char* data, uint8_t& depth) override;
 
   protected:
     template<typename Function, typename Tuple, size_t... I>
@@ -66,7 +66,7 @@ class CommandBase : public ItemBase {
         char*      ptr      = (char*)"";
 
         if (spacePos != std::string_view::npos) {
-            auto p = (char*)getNextArg(s.data() + spacePos);
+            auto p = (char*)get_arg(s.data() + spacePos);
             if (p != nullptr) {
                 ptr = p;
             }
@@ -80,7 +80,7 @@ class CommandBase : public ItemBase {
     }
 
     template<typename R0, typename... R>
-    static constexpr uint8_t checkType(char* buffer, uint8_t len) {
+    static constexpr uint8_t check_type(char* buffer, uint8_t len) {
         if constexpr (std::is_same<R0, float>()) {
             buffer[len] = 'f';
         } else if constexpr (std::is_same<R0, double>()) {
@@ -102,7 +102,7 @@ class CommandBase : public ItemBase {
 
         len++;
         if constexpr (sizeof...(R) > 0) {
-            return checkType<R...>(buffer, len);
+            return check_type<R...>(buffer, len);
         } else {
             return len;
         }

@@ -14,7 +14,6 @@ class ShellBase : public PrintManager, public ParseBuffer {
         SKIPPING,
     };
 
-
   public:
     struct Config {
         typedef bool (*write_function_t)(const char* data, size_t length);
@@ -24,7 +23,7 @@ class ShellBase : public PrintManager, public ParseBuffer {
         write_function_t writeFunction;
     };
 
-    virtual void printHints() = 0;
+    virtual void print_hints() = 0;
 
     virtual void parse() = 0;
 
@@ -39,7 +38,10 @@ class ShellBase : public PrintManager, public ParseBuffer {
     ShellBase(Config config) : config(config) {
     }
 
-    inline void printData(const char* s, uint8_t length) override {
+    void init() {
+    }
+
+    inline void print_data(const char* s, uint8_t length) override {
         config.writeFunction(s, length);
     }
 
@@ -73,7 +75,7 @@ class ShellBase : public PrintManager, public ParseBuffer {
                     // check tabulator
                     if (byte == '\t' || byte == '?') {
                         ParseBuffer::push('\0');
-                        printHints();
+                        print_hints();
                         continue;
                     }
 
@@ -89,7 +91,8 @@ class ShellBase : public PrintManager, public ParseBuffer {
                             continue;
                         }
                         ParseBuffer::push('\0');
-                        state = READING_STATE::FOUND_COMMAND;
+                        parse();
+                        state = READING_STATE::CLEAR;
                         break;
                     }
 
@@ -101,10 +104,6 @@ class ShellBase : public PrintManager, public ParseBuffer {
                     }
                     ParseBuffer::push(byte);
                 }
-                break;
-            case READING_STATE::FOUND_COMMAND:
-                parse();
-                state = READING_STATE::CLEAR;
                 break;
             case READING_STATE::SKIPPING:
                 if (available() == 0) {
@@ -143,13 +142,9 @@ class Shell : public ShellBase {
     Shell(Config config, std::array<ItemBase*, count> commands) : ShellBase(config), commandSet(commands) {
     }
 
-
-    void init() {
-    }
-
-    void printHints() {
+    void print_hints() {
         uint8_t temporaryParseDepth = 0;
-        if (commandSet.printHints(*this, *this, temporaryParseDepth)) {
+        if (commandSet.print_hints(*this, *this, temporaryParseDepth)) {
             return;
         }
 

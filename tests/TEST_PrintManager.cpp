@@ -15,7 +15,7 @@ class Print : public PrintManager {
     }
 
 
-    void printData(const char* s, uint8_t length) override {
+    void print_data(const char* s, uint8_t length) override {
         for (int i = 0; i < length; i++) {
             dataFromApp += s[i];
         }

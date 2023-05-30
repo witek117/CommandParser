@@ -26,9 +26,15 @@ class ParseBuffer {
         received_bytes += length;
     }
 
-    void push_at_read_index(const char* data, uint8_t length) {
-        std::memcpy(&buffer[readIndex], data, length);
-        received_bytes = readIndex + length;
+    void push_at(const char* data, size_t length, size_t index) {
+        std::memcpy(&buffer[index], data, length);
+        received_bytes = index + length;
+    }
+
+    void terminate() {
+        if (buffer[received_bytes] != '\0') {
+            push('\0');
+        }
     }
 
     void clear() {
@@ -42,15 +48,23 @@ class ParseBuffer {
         }
     }
 
-    int size() {
+    size_t size() const {
         return received_bytes;
     }
 
-    const char* get() {
-        return buffer + readIndex;
+    const char* get() const {
+        return buffer;
     }
 
-    void increaseReadIndex(size_t index) {
+    const char* get(size_t index) const {
+        return &buffer[index];
+    }
+
+    size_t get_read_index() const {
+        return readIndex;
+    }
+
+    void increase_read_index(size_t index) {
         readIndex += index;
     }
 };

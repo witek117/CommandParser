@@ -9,13 +9,13 @@ class CommandSetBase : public ItemBase {
     CommandSetBase(const char* name, const char* description) : ItemBase(name, description) {
     }
 
-    virtual bool parse(PrintManager* print, const char* data, uint8_t& parseDepth) override;
+    virtual bool parse(PrintManager* print, const char* data, uint8_t& depth) override;
 
-    virtual int printHints(PrintManager& print, ParseBuffer& buffer, uint8_t& depth) override;
+    virtual int print_hints(PrintManager& print, ParseBuffer& buffer, uint8_t& depth) override;
 
-    virtual ItemBase* getItem(int index) = 0;
+    virtual ItemBase* get_item(int index) = 0;
 
-    virtual int getCount() const = 0;
+    virtual int get_count() const = 0;
 };
 
 template<int count>
@@ -32,11 +32,11 @@ class CommandSet : public CommandSetBase {
     constexpr CommandSet(CommandContainer commands) : CommandSetBase("", ""), commands(commands) {
     }
 
-    virtual int getCount() const {
+    virtual int get_count() const {
         return count;
     }
 
-    virtual ItemBase* getItem(int index) {
+    virtual ItemBase* get_item(int index) {
         return commands[index];
     }
 };

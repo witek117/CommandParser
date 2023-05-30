@@ -1,22 +1,22 @@
 #include "CommandSet.hpp"
 
-bool CommandSetBase::parse(PrintManager* print, const char* data, uint8_t& parseDepth) {
+bool CommandSetBase::parse(PrintManager* print, const char* data, uint8_t& depth) {
     printer = print;
-    if (getNameLen() == 0 || checkName(data) == ItemBase::Match::ALL) {
-        parseDepth++;
-        uint8_t temporaryParseDepth = parseDepth;
-        data += ItemBase::getNameLen();
-        const char* ptr = getNextArg(data);
+    if (get_name_len() == 0 || check_name(data) == ItemBase::Match::ALL) {
+        depth++;
+        uint8_t temporary_depth = depth;
+        data += ItemBase::get_name_len();
+        const char* ptr = get_arg(data);
         if (ptr == nullptr) {
             return false;
         }
-        for (int i = 0; i < getCount(); i++) {
-            if (getItem(i)->parse(print, ptr, temporaryParseDepth)) {
-                parseDepth = temporaryParseDepth;
+        for (auto i = 0; i < get_count(); i++) {
+            if (get_item(i)->parse(print, ptr, temporary_depth)) {
+                depth = temporary_depth;
                 return true;
             }
-            if (temporaryParseDepth != parseDepth) {
-                parseDepth = temporaryParseDepth;
+            if (temporary_depth != depth) {
+                depth = temporary_depth;
                 return false;
             }
         }
@@ -24,37 +24,38 @@ bool CommandSetBase::parse(PrintManager* print, const char* data, uint8_t& parse
     return false;
 }
 
-
-int CommandSetBase::printHints(PrintManager& print, ParseBuffer& buffer, uint8_t& depth) {
-    uint8_t         match_commands = 0;
-    uint8_t         found_index    = 0;
-    const char*     ptr            = ItemBase::getNextArg(buffer.get());
-    ItemBase::Match lastMatch      = ItemBase::Match::NO;
+int CommandSetBase::print_hints(PrintManager& print, ParseBuffer& buffer, uint8_t& depth) {
+    buffer.terminate();
+    size_t          match_commands = 0;
+    size_t          found_index    = 0;
+    const char*     ptr            = ItemBase::get_arg(buffer.get());
+    ItemBase::Match last_match     = ItemBase::Match::NO;
 
     if (ptr == nullptr) {
-        for (uint8_t i = 0; i < getCount(); i++) {
-            auto item = getItem(i);
+        for (auto i = 0; i < get_count(); i++) {
+            auto item = get_item(i);
             if (item == nullptr) {
                 continue;
             }
-            item->getInfo(print);
+            item->get_info(print);
         }
+        depth++;
+        return 0;
     }
 
-    for (uint8_t i = 0; i < getCount(); i++) {
-        auto item = getItem(i);
+    for (auto i = 0; i < get_count(); i++) {
+        auto item = get_item(i);
         if (item == nullptr) {
             continue;
         }
 
-        lastMatch = item->checkName(ptr);
+        last_match = item->check_name(ptr);
 
-        if (lastMatch == ItemBase::Match::ALL) {
+        if (last_match == ItemBase::Match::ALL) {
             depth++;
-            buffer.increaseReadIndex(item->getNameLen() + 1);
-            item->printHints(print, buffer, depth);
-            return 1;
-        } else if (lastMatch == ItemBase::Match::PART) {
+            buffer.increase_read_index(item->get_name_len());
+            return item->print_hints(print, buffer, depth);
+        } else if (last_match == ItemBase::Match::PART) {
             match_commands++;
             found_index = i;
         }
@@ -62,21 +63,21 @@ int CommandSetBase::printHints(PrintManager& print, ParseBuffer& buffer, uint8_t
 
     if (match_commands == 1) {
         depth++;
-        auto item = getItem(found_index);
-        buffer.push_at_read_index(item->getName(), item->getNameLen());
+        auto item = get_item(found_index);
+        buffer.push_at(item->get_name(), item->get_name_len(), buffer.get_read_index());
         buffer.push(' ');
         buffer.push('\0');
     }
 
     if (match_commands > 1) {
-        for (uint8_t i = 0; i < getCount(); i++) {
-            auto item = getItem(i);
+        for (auto i = 0; i < get_count(); i++) {
+            auto item = get_item(i);
             if (item == nullptr) {
                 continue;
             }
 
-            if (item->checkName(ptr) == ItemBase::Match::PART) {
-                item->getInfo(print);
+            if (item->check_name(ptr) == ItemBase::Match::PART) {
+                item->get_info(print);
             }
         }
     }

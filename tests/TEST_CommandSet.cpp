@@ -18,10 +18,10 @@ TEST(COMMANDSET, checkName) {
         });
     CommandSet<1> commandSet("new_cmd", "description", {&myCommand});
 
-    EXPECT_TRUE(commandSet.checkName("new") == ItemBase::Match::PART);
-    EXPECT_TRUE(commandSet.checkName("new_cmd") == ItemBase::Match::ALL);
-    EXPECT_TRUE(commandSet.checkName("new_cmdd") == ItemBase::Match::NO);
-    EXPECT_TRUE(commandSet.checkName("test") == ItemBase::Match::NO);
+    EXPECT_TRUE(commandSet.check_name("new") == ItemBase::Match::PART);
+    EXPECT_TRUE(commandSet.check_name("new_cmd") == ItemBase::Match::ALL);
+    EXPECT_TRUE(commandSet.check_name("new_cmdd") == ItemBase::Match::NO);
+    EXPECT_TRUE(commandSet.check_name("test") == ItemBase::Match::NO);
 }
 
 Command command1(
@@ -85,7 +85,7 @@ TEST(COMMANDSET, parse) {
     EXPECT_FALSE(retVal5);
 }
 
-TEST(COMMANDSET, printHints) {
+TEST(COMMANDSET, print_hints) {
     mockPrint.clear();
 
     CommandSet<3> commandSet("commandSet", "description", {&command1, &command2, &command4});
@@ -95,22 +95,72 @@ TEST(COMMANDSET, printHints) {
 
     buffer.push("command1 1 2 3", 14);
 
-    commandSet.printHints(mockPrint, buffer, depth);
+    commandSet.print_hints(mockPrint, buffer, depth);
 
     buffer.clear();
     buffer.push("te", 2);
 
-    commandSet.printHints(mockPrint, buffer, depth);
-    EXPECT_TRUE(0 == std::memcmp(buffer.get(), command4.getName(), command4.getNameLen()))
-        << "\"" << buffer.get() << "\" is not \"" << command4.getName() << "\"";
+    commandSet.print_hints(mockPrint, buffer, depth);
+    EXPECT_TRUE(0 == std::memcmp(buffer.get(), command4.get_name(), command4.get_name_len()))
+        << "\"" << buffer.get() << "\" is not \"" << command4.get_name() << "\"";
 
     buffer.clear();
     buffer.push("com", 3);
-    commandSet.printHints(mockPrint, buffer, depth);
+    commandSet.print_hints(mockPrint, buffer, depth);
 
     auto splitted = helper::remove_blank(helper::split(mockPrint.get(), "\r\n"));
 
     for (auto s : splitted) {
         EXPECT_TRUE(s.find("com") != std::string::npos);
     }
+}
+
+TEST(COMMANDSET, printHintsDeep) {
+    mockPrint.clear();
+
+    CommandSet<2> commandSet1("commandSet1", "description 1", {&command1, &command2});
+    CommandSet<2> commandSet2("commandSet2", "description 2", {&command3, &command4});
+    CommandSet<3> commandSet3("commandSet3", "description 3", {&commandSet1, &commandSet2, &command1});
+
+    ParseBuffer buffer;
+
+    uint8_t depth = 0;
+    buffer.push("com", 3);
+    commandSet3.print_hints(mockPrint, buffer, depth);
+
+    auto splitted1 = helper::remove_blank(helper::split(mockPrint.get(), "\n\r"));
+    EXPECT_EQ(splitted1.size(), 3);
+
+    const char* expected1[3] = {"commandSet1\tdescription 1", "commandSet2\tdescription 2", "command1\tdesc"};
+
+    for (int i = 0; i < splitted1.size(); i++) {
+        EXPECT_STREQ(splitted1.at(i).c_str(), expected1[i]);
+    }
+
+    buffer.clear();
+    mockPrint.clear();
+    buffer.push("commandSet1", 11);
+    commandSet3.print_hints(mockPrint, buffer, depth);
+
+    auto splitted2 = helper::remove_blank(helper::split(mockPrint.get(), "\n\r"));
+    EXPECT_EQ(splitted2.size(), 2);
+
+    const char* expected2[2] = {"command1\tdesc", "command2\tdesc"};
+
+    for (int i = 0; i < splitted2.size(); i++) {
+        EXPECT_STREQ(splitted2.at(i).c_str(), expected2[i]);
+    }
+
+    buffer.clear();
+    mockPrint.clear();
+    buffer.push("command1", 8);
+
+    commandSet3.print_hints(mockPrint, buffer, depth);
+
+    auto splitted3 = helper::remove_blank(helper::split(mockPrint.get(), "\n\r"));
+    EXPECT_EQ(splitted3.size(), 1);
+
+    const char* expected3 = {"command1\tdesc"};
+
+    EXPECT_STREQ(splitted3.at(0).c_str(), expected3);
 }
