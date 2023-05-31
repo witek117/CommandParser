@@ -19,33 +19,24 @@ const char* ItemBase::get_arg(const char* data) {
     return ptr;
 }
 
-const char* ItemBase::get_arg(const char* data, uint8_t& argSize) {
-    argSize         = 0;
-    const char* ptr = get_arg(data);
-    if (ptr == nullptr) {
-        return nullptr;
-    }
-
-    for (uint8_t i = 0; i < 20; i++) {
-        if (ptr[i] == ' ' || ptr[i] == '\0') {
-            argSize = i;
-            return ptr;
-        }
-    }
-    return nullptr;
-}
-
 const char* ItemBase::get_name() const {
     return name;
 }
 
-size_t ItemBase::get_name_len() const {
-    return nameLen;
+const char* ItemBase::get_description() const {
+    return description;
+}
+std::size_t ItemBase::get_name_len() const {
+    return name_len;
+}
+
+std::size_t ItemBase::get_description_len() const {
+    return description_len;
 }
 
 ItemBase::Match ItemBase::check_name(const char* data) const {
-    uint8_t i = 0;
-    for (; i < nameLen; i++) {
+    std::size_t i = 0;
+    for (; i < name_len; i++) {
         if (data[i] != name[i]) {
             break;
         }
@@ -59,9 +50,36 @@ ItemBase::Match ItemBase::check_name(const char* data) const {
         return Match::NO;
     }
 
-    if (i == nameLen) {
-        return (data[nameLen] != '\0' && data[nameLen] != ' ') ? Match::NO : Match::ALL;
+    if (i == name_len) {
+        return (data[name_len] != '\0' && data[name_len] != ' ') ? Match::NO : Match::ALL;
     }
 
     return Match::PART;
+}
+
+void ItemBase::get_info(PrintManager& print) {
+    print.print(get_name());
+    print.print('\t');
+    print.print(get_description());
+    print.print("\n\r");
+}
+
+bool ItemBase::parse(PrintManager* print, const char* data, std::size_t& depth) {
+    printer = print;
+    (void)data;
+    (void)depth;
+    return false;
+}
+
+int ItemBase::print_hints(PrintManager& print, ParseBuffer& buffer, std::size_t& depth) {
+    print.print('\t');
+    print.print(get_description());
+    print.print("\n\r");
+    (void)buffer;
+    (void)depth;
+    return 1;
+}
+
+PrintManager* ItemBase::get_printer() const {
+    return printer;
 }

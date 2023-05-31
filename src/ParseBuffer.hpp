@@ -1,9 +1,12 @@
 #pragma once
 
+#include <cstdint>
+#include <cstddef>
+
 class ParseBuffer {
-    char   buffer[100]    = {0};
-    size_t received_bytes = 0;
-    size_t readIndex      = 0;
+    char        buffer[100]    = {0};
+    std::size_t received_bytes = 0;
+    std::size_t read_index     = 0;
 
   public:
     ParseBuffer() {
@@ -11,60 +14,33 @@ class ParseBuffer {
     ~ParseBuffer() {
     }
 
-    void push(const char data) {
-        if (data == ' ' && buffer[received_bytes - 1] == ' ') {
-            return;
-        }
-        if (received_bytes < sizeof(buffer)) {
-            buffer[received_bytes++] = data;
-        }
+    void push(const char data);
+
+    void push(const char* data, std::size_t len);
+
+    void push_at(const char* data, std::size_t len, std::size_t index);
+
+    void terminate();
+
+    void clear();
+
+    void pop();
+
+    void reset_read() {
+        read_index = 0;
     }
 
-    void push(const char* data, uint8_t length) {
-        // TODO checking length
-        std::memcpy(&buffer[received_bytes], data, length);
-        received_bytes += length;
-    }
+    std::size_t size() const;
 
-    void push_at(const char* data, size_t length, size_t index) {
-        std::memcpy(&buffer[index], data, length);
-        received_bytes = index + length;
-    }
+    const char* get() const;
 
-    void terminate() {
-        if (buffer[received_bytes] != '\0') {
-            push('\0');
-        }
-    }
+    const char* get(std::size_t index) const;
 
-    void clear() {
-        received_bytes = 0;
-        readIndex      = 0;
-    }
+    std::size_t get_read_index() const;
 
-    void pop() {
-        if (received_bytes > 0) {
-            received_bytes--;
-        }
-    }
+    void increase_read_index(std::size_t index);
 
-    size_t size() const {
-        return received_bytes;
-    }
-
-    const char* get() const {
-        return buffer;
-    }
-
-    const char* get(size_t index) const {
-        return &buffer[index];
-    }
-
-    size_t get_read_index() const {
-        return readIndex;
-    }
-
-    void increase_read_index(size_t index) {
-        readIndex += index;
+    char get_last() const {
+        return buffer[received_bytes - 1];
     }
 };

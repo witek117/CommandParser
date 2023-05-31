@@ -1,5 +1,4 @@
 #include <CommandBase.hpp>
-
 #include <gmock/gmock.h>
 
 TEST(COMMANDBASE, get) {
@@ -22,24 +21,24 @@ TEST(COMMANDBASE, get) {
 
 class MockCommandBase : public CommandBase {
   public:
-    void set_args(const char* args) {
-        args_begin = args;
+    void set_args(const char* data) {
+        args = data;
     }
 
-    MockCommandBase(uint8_t args_count) : CommandBase("", "", false, args_count) {
+    MockCommandBase(std::size_t args_count) : CommandBase("", "", false, args_count) {
     }
 
     virtual void callback_handler(const char* data) {
         (void)data;
     }
 
-    virtual uint8_t get_values_info(char* buffer) {
+    virtual std::size_t get_values_info(char* buffer) {
         (void)buffer;
         return 0;
     }
 };
 
-TEST(COMMANDBASE, getArgCount) {
+TEST(COMMANDBASE, get_args_count) {
     MockCommandBase command(3);
 
     command.set_args("ab cd ef gh");

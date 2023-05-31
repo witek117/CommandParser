@@ -9,9 +9,9 @@ class CommandSetBase : public ItemBase {
     CommandSetBase(const char* name, const char* description) : ItemBase(name, description) {
     }
 
-    virtual bool parse(PrintManager* print, const char* data, uint8_t& depth) override;
+    virtual bool parse(PrintManager* print, const char* data, std::size_t& depth) override;
 
-    virtual int print_hints(PrintManager& print, ParseBuffer& buffer, uint8_t& depth) override;
+    virtual int print_hints(PrintManager& print, ParseBuffer& buffer, std::size_t& depth) override;
 
     virtual ItemBase* get_item(int index) = 0;
 

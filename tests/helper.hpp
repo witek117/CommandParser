@@ -13,8 +13,8 @@ namespace helper {
     class PrintManagerMock : public PrintManager {
       public:
         std::string  received;
-        virtual void print_data(const char* s, uint8_t length) {
-            for (int i = 0; i < length; i++) {
+        virtual void print_data(const char* s, std::size_t len) {
+            for (std::size_t i = 0; i < len; i++) {
                 received.push_back(s[i]);
             }
         }

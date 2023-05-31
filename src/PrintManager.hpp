@@ -1,33 +1,31 @@
 #pragma once
 
 #include <cstdint>
-#include <cstring>
-#include <cmath>
-
+#include <cstddef>
 class PrintManager {
-    void parse_value(uint32_t value, uint8_t buffIndexEnd = BUFF_SIZE - 1);
+    void parse_value(uint32_t value, std::size_t buff_index_end = BUFF_SIZE - 1);
 
     void print_buffer();
 
     void add_minus();
 
   protected:
-    static const uint8_t BUFF_SIZE       = 15;
-    uint8_t              i               = 0;
-    char                 buff[BUFF_SIZE] = {0};
+    static const std::size_t BUFF_SIZE       = 15;
+    std::size_t              i               = 0;
+    char                     buff[BUFF_SIZE] = {0};
 
-    virtual void print_data(const char* s, uint8_t length) = 0;
+    virtual void print_data(const char* s, std::size_t len) = 0;
 
   public:
     inline void print(char s) {
         print_data(&s, 1);
     }
 
-    inline void print(const char* s, uint8_t length) {
-        print_data(s, length);
+    inline void print(const char* s, std::size_t len) {
+        print_data(s, len);
     }
 
-    size_t print(const char s[]);
+    std::size_t print(const char s[]);
 
     void print(uint32_t value);
 

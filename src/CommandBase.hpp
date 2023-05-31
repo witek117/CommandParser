@@ -5,49 +5,28 @@
 #include <tuple>
 
 class CommandBase : public ItemBase {
-    const bool    shouldReturnValue = false;
-    const uint8_t parametersCount   = 0;
+    const bool        should_return_value = false;
+    const std::size_t parameters_count    = 0;
 
   protected:
-    const char* args_begin = nullptr;
+    const char* args = nullptr;
 
-    virtual void    callback_handler(const char* data) = 0;
-    virtual uint8_t get_values_info(char* buffer)      = 0;
+    virtual void        callback_handler(const char* data) = 0;
+    virtual std::size_t get_values_info(char* buffer)      = 0;
 
   public:
-    uint8_t get_args_count() const {
-        uint8_t     argsCount = 0;
-        const char* ptr       = args_begin;
-        while (true) {
-            ptr = get_arg(ptr);
-            if (ptr == nullptr) {
-                break;
-            }
-            argsCount++;
-            ptr++;
+    std::size_t get_args_count() const;
 
-            while (true) {
-                if (*ptr == ' ' || *ptr == '\0') {
-                    break;
-                }
-                ptr++;
-            }
-        }
-        return argsCount;
-    };
+    bool check_args_count() const;
 
-    bool check_args_count() const {
-        return get_args_count() == parametersCount;
+    CommandBase(const char* name, const char* description, bool should_return_value, std::size_t parameters_count) :
+        ItemBase(name, description), should_return_value(should_return_value), parameters_count(parameters_count) {
     }
 
-    CommandBase(const char* name, const char* description, bool shouldReturnValue, uint8_t parametersCount) :
-        ItemBase(name, description), shouldReturnValue(shouldReturnValue), parametersCount(parametersCount) {
-    }
-
-    virtual bool parse(PrintManager* print, const char* data, uint8_t& depth) override;
+    virtual bool parse(PrintManager* print, const char* data, std::size_t& depth) override;
 
   protected:
-    template<typename Function, typename Tuple, size_t... I>
+    template<typename Function, typename Tuple, std::size_t... I>
     static constexpr auto call(Function f, CommandBase& cmd, Tuple t, std::index_sequence<I...>) {
         return f(cmd, std::get<I>(t)...);
     }
@@ -80,7 +59,7 @@ class CommandBase : public ItemBase {
     }
 
     template<typename R0, typename... R>
-    static constexpr uint8_t check_type(char* buffer, uint8_t len) {
+    static constexpr std::size_t check_type(char* buffer, std::size_t len) {
         if constexpr (std::is_same<R0, float>()) {
             buffer[len] = 'f';
         } else if constexpr (std::is_same<R0, double>()) {

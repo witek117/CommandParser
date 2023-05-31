@@ -1,13 +1,15 @@
 #include "PrintManager.hpp"
+#include <cmath>
+#include <cstring>
 
-size_t PrintManager::print(const char s[]) {
-    size_t length = strlen(s);
-    print_data(s, length);
-    return length;
+std::size_t PrintManager::print(const char s[]) {
+    std::size_t len = std::strlen(s);
+    print_data(s, len);
+    return len;
 }
 
-void PrintManager::parse_value(uint32_t value, uint8_t buffIndexEnd) {
-    i = buffIndexEnd;
+void PrintManager::parse_value(uint32_t value, std::size_t buff_index_end) {
+    i = buff_index_end;
     if (value == 0) {
         buff[i] = '0';
     }

@@ -7,33 +7,33 @@
 #include <array>
 
 class ShellBase : public PrintManager, public ParseBuffer {
-    enum class READING_STATE : uint8_t {
-        CLEAR,
-        ADD_DATA,
-        FOUND_COMMAND,
-        SKIPPING,
-    };
-
   public:
     struct Config {
-        typedef bool (*write_function_t)(const char* data, size_t length);
-        typedef const char* (*read_function_t)(size_t& length);
+        typedef bool (*write_function_t)(const char* data, std::size_t len);
+        typedef const char* (*read_function_t)(std::size_t& len);
 
-        read_function_t  readFunction;
-        write_function_t writeFunction;
+        read_function_t  read_function;
+        write_function_t write_function;
     };
 
+  private:
+    enum class READING_STATE : std::size_t {
+        CLEAR,
+        ADD_DATA,
+        SKIPPING,
+    };
+    READING_STATE state             = READING_STATE::CLEAR;
+    std::size_t   skipping_index    = 0;
+    std::size_t   read_buffer_len   = 0;
+    std::size_t   read_buffer_index = 0;
+    const char*   read_buffer       = nullptr;
+
+    Config config;
+
+  public:
     virtual void print_hints() = 0;
 
     virtual void parse() = 0;
-
-    READING_STATE state            = READING_STATE::CLEAR;
-    uint8_t       skipping_index   = 0;
-    size_t        readBufferLength = 0;
-    size_t        readBufferIndex  = 0;
-    const char*   readBuffer       = nullptr;
-
-    Config config;
 
     ShellBase(Config config) : config(config) {
     }
@@ -41,120 +41,42 @@ class ShellBase : public PrintManager, public ParseBuffer {
     void init() {
     }
 
-    inline void print_data(const char* s, uint8_t length) override {
-        config.writeFunction(s, length);
-    }
+    void print_data(const char* s, std::size_t len) override;
 
-    size_t available() {
-        if (readBufferIndex == readBufferLength) {
-            readBufferIndex = 0;
-            readBuffer      = config.readFunction(readBufferLength);
-        }
+    std::size_t available();
 
-        return readBufferLength - readBufferIndex;
-    }
+    char read();
 
-    char read() {
-        return readBuffer[readBufferIndex++];
-    }
-
-    bool run() {
-        size_t avai = 0;
-
-        switch (state) {
-            case READING_STATE::CLEAR:
-                state = READING_STATE::ADD_DATA;
-                ParseBuffer::clear();
-                break;
-            case READING_STATE::ADD_DATA:
-                avai = available();
-
-                for (auto i = 0; i < avai; i++) {
-                    char byte = read();
-
-                    // check tabulator
-                    if (byte == '\t' || byte == '?') {
-                        ParseBuffer::push('\0');
-                        print_hints();
-                        continue;
-                    }
-
-                    // check backspace
-                    if (byte == 0x7f) {
-                        ParseBuffer::pop();
-                        break;
-                    }
-
-                    // check enter
-                    if (byte == '\r' || byte == '\n') {
-                        if (ParseBuffer::size() == 0) {
-                            continue;
-                        }
-                        ParseBuffer::push('\0');
-                        parse();
-                        state = READING_STATE::CLEAR;
-                        break;
-                    }
-
-                    // check escape
-                    if (byte == 0x1b) {
-                        skipping_index = 0;
-                        state          = READING_STATE::SKIPPING;
-                        break;
-                    }
-                    ParseBuffer::push(byte);
-                }
-                break;
-            case READING_STATE::SKIPPING:
-                if (available() == 0) {
-                    break;
-                }
-
-                if (skipping_index == 0) {
-                    uint8_t byte = read();
-                    if (byte == 0x5b) {
-                        skipping_index++;
-                    } else if (byte == 0x1b) {
-                    } else {
-                        skipping_index = 0;
-                        ParseBuffer::push(byte);
-                        state = READING_STATE::ADD_DATA;
-                    }
-                }
-
-                if (skipping_index == 1) {
-                    read();
-                    skipping_index = 0;
-                    state          = READING_STATE::ADD_DATA;
-                }
-                break;
-        }
-
-        return true;
-    }
+    bool run();
 };
 
 template<int count>
 class Shell : public ShellBase {
-    CommandSet<count> commandSet;
+    CommandSet<count> command_set;
 
   public:
-    Shell(Config config, std::array<ItemBase*, count> commands) : ShellBase(config), commandSet(commands) {
+    Shell(Config config, std::array<ItemBase*, count> commands) : ShellBase(config), command_set(commands) {
     }
 
     void print_hints() {
-        uint8_t temporaryParseDepth = 0;
-        if (commandSet.print_hints(*this, *this, temporaryParseDepth)) {
-            return;
-        }
+        ParseBuffer::terminate();
+        std::size_t temporaryparse_depth = 0;
+        PrintManager::print("\n\r");
+
+        command_set.print_hints(*this, *this, temporaryparse_depth);
+
+        ParseBuffer::reset_read();
+        PrintManager::print(ParseBuffer::get());
 
         return;
     }
 
     void parse() {
+        ParseBuffer::terminate();
         PrintManager::print("\n\r");
-        uint8_t temporaryParseDepth = 0;
-        if (commandSet.parse(this, ParseBuffer::get(), temporaryParseDepth)) {
+        std::size_t temporaryparse_depth = 0;
+        if (command_set.parse(this, ParseBuffer::get(), temporaryparse_depth)) {
+            ParseBuffer::clear();
             return;
         }
 

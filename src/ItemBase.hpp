@@ -6,55 +6,38 @@
 #include <cstring>
 
 class ItemBase {
+  public:
+    enum class Match { NO, ALL, PART };
+
   protected:
     const char*   name;
-    size_t        nameLen;
+    std::size_t   name_len;
     const char*   description;
-    size_t        descriptionLen;
+    std::size_t   description_len;
     PrintManager* printer;
 
   public:
-    PrintManager* get_printer() const {
-        return printer;
-    }
-
-    static const char* get_arg(const char* data);
-
-    static const char* get_arg(const char* data, uint8_t& argSize);
-
     ItemBase(const char* name, const char* description) :
-        name(name), nameLen(std::strlen(name)), description(description), descriptionLen(strlen(description)) {
+        name(name), name_len(std::strlen(name)), description(description), description_len(strlen(description)) {
     }
 
     const char* get_name() const;
-    const char* get_description() const {
-        return description;
-    }
 
-    size_t get_name_len() const;
+    const char* get_description() const;
 
-    void get_info(PrintManager& print) {
-        print.print(get_name());
-        print.print('\t');
-        print.print(get_description());
-        print.print("\n\r");
-    }
+    void get_info(PrintManager& print);
 
-    virtual bool parse(PrintManager* print, const char* data, uint8_t& parseDepth) {
-        printer = print;
-        (void)data;
-        (void)parseDepth;
-        return false;
-    }
+    PrintManager* get_printer() const;
 
-    virtual int print_hints(PrintManager& print, ParseBuffer& buffer, uint8_t& depth) {
-        get_info(print);
-        (void)buffer;
-        (void)depth;
-        return 1;
-    }
+    static const char* get_arg(const char* data);
 
-    enum class Match { NO, ALL, PART };
+    std::size_t get_name_len() const;
+
+    std::size_t get_description_len() const;
+
+    virtual bool parse(PrintManager* print, const char* data, std::size_t& depth);
+
+    virtual int print_hints(PrintManager& print, ParseBuffer& buffer, std::size_t& depth);
 
     Match check_name(const char* data) const;
 };

@@ -2,7 +2,7 @@
 
 namespace helper {
     std::vector<std::string> split(std::string data, std::string delimiter) {
-        size_t                   pos_start = 0, pos_end, delim_len = delimiter.length();
+        std::size_t              pos_start = 0, pos_end, delim_len = delimiter.length();
         std::string              token;
         std::vector<std::string> res;
 
@@ -17,9 +17,9 @@ namespace helper {
     }
 
     std::string trim(std::string data) {
-        const char* notData = " \n\r\t";
-        auto        start   = data.find_first_not_of(notData);
-        auto        stop    = data.find_last_not_of(notData);
+        const char* not_data = " \n\r\t";
+        auto        start    = data.find_first_not_of(not_data);
+        auto        stop     = data.find_last_not_of(not_data);
 
         if (start != std::string::npos && stop != std::string::npos) {
             return data.substr(start, stop - start + 1);

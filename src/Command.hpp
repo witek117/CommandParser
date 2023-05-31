@@ -17,7 +17,7 @@ class Command : public CommandBase {
     }
 
   public:
-    uint8_t get_values_info(char* buffer) override {
+    std::size_t get_values_info(char* buffer) override {
         if constexpr (sizeof...(T) > 0) {
             return check_type<T...>(buffer, 0);
         } else {
@@ -27,7 +27,10 @@ class Command : public CommandBase {
         return ' ';
     }
 
-    Command(const char* name, const char* description, void (*handler)(CommandBase&, T...), bool shouldReturnValue = false) :
-        CommandBase(name, description, shouldReturnValue, sizeof...(T)), handler(handler) {
+    Command(const char* name,
+            const char* description,
+            void (*handler)(CommandBase&, T...),
+            bool should_return_value = false) :
+        CommandBase(name, description, should_return_value, sizeof...(T)), handler(handler) {
     }
 };
