@@ -33,7 +33,7 @@ bool write_function(const char* data, std::size_t len) {
     return false;
 }
 
-ShellBase::Config config{.read_function = read_function, .write_function = write_function};
+ShellBase::backend_t config{.p_read = read_function, .p_write = write_function};
 
 TEST(SHELL, multi_commands) {
     Command jeden("jeden", "desc", callback1);

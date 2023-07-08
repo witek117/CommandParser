@@ -8,12 +8,12 @@
 
 class ShellBase : public PrintManager, public ParseBuffer {
   public:
-    struct Config {
+    struct backend_t {
         typedef bool (*write_function_t)(const char* data, std::size_t len);
         typedef const char* (*read_function_t)(std::size_t& len);
 
-        read_function_t  read_function;
-        write_function_t write_function;
+        read_function_t  p_read;
+        write_function_t p_write;
     };
 
   private:
@@ -28,14 +28,18 @@ class ShellBase : public PrintManager, public ParseBuffer {
     std::size_t   read_buffer_index = 0;
     const char*   read_buffer       = nullptr;
 
-    Config config;
+    backend_t backend;
 
   public:
-    virtual void print_hints() = 0;
+    virtual int print_hints_cmd(PrintManager& print, ParseBuffer& buffer, std::size_t& depth) = 0;
 
-    virtual void parse() = 0;
+    virtual bool parse_cmd(PrintManager* print, const char* data, std::size_t& depth) = 0;
 
-    ShellBase(Config config) : config(config) {
+    void print_hints();
+
+    void parse();
+
+    ShellBase(backend_t backend) : backend(backend) {
     }
 
     void init() {
@@ -55,32 +59,14 @@ class Shell : public ShellBase {
     CommandSet<count> command_set;
 
   public:
-    Shell(Config config, std::array<ItemBase*, count> commands) : ShellBase(config), command_set(commands) {
+    Shell(backend_t backend, std::array<ItemBase*, count> commands) : ShellBase(backend), command_set(commands) {
     }
 
-    void print_hints() {
-        ParseBuffer::terminate();
-        std::size_t temporaryparse_depth = 0;
-        PrintManager::print("\n\r");
-
-        command_set.print_hints(*this, *this, temporaryparse_depth);
-
-        ParseBuffer::reset_read();
-        PrintManager::print(ParseBuffer::get());
-
-        return;
+    int print_hints_cmd(PrintManager& print, ParseBuffer& buffer, std::size_t& depth) override {
+        return command_set.print_hints(print, buffer, depth);
     }
 
-    void parse() {
-        ParseBuffer::terminate();
-        PrintManager::print("\n\r");
-        std::size_t temporaryparse_depth = 0;
-        if (command_set.parse(this, ParseBuffer::get(), temporaryparse_depth)) {
-            ParseBuffer::clear();
-            return;
-        }
-
-        ParseBuffer::clear();
-        PrintManager::print("undefined\n\r");
+    bool parse_cmd(PrintManager* print, const char* data, std::size_t& depth) override {
+        return command_set.parse(print, data, depth);
     }
 };

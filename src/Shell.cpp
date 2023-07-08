@@ -2,13 +2,13 @@
 #include <array>
 
 void ShellBase::print_data(const char* s, std::size_t len) {
-    config.write_function(s, len);
+    backend.p_write(s, len);
 }
 
 std::size_t ShellBase::available() {
     if (read_buffer_index == read_buffer_len) {
         read_buffer_index = 0;
-        read_buffer       = config.read_function(read_buffer_len);
+        read_buffer       = backend.p_read(read_buffer_len);
     }
 
     return read_buffer_len - read_buffer_index;
@@ -90,4 +90,28 @@ bool ShellBase::run() {
     }
 
     return true;
+}
+
+void ShellBase::print_hints() {
+    ParseBuffer::terminate();
+    std::size_t temporaryparse_depth = 0;
+    PrintManager::print("\n\r");
+
+    print_hints_cmd(*this, *this, temporaryparse_depth);
+
+    ParseBuffer::reset_read();
+    PrintManager::print(ParseBuffer::get());
+}
+
+void ShellBase::parse() {
+    ParseBuffer::terminate();
+    PrintManager::print("\n\r");
+    std::size_t temporaryparse_depth = 0;
+    if (parse_cmd(this, ParseBuffer::get(), temporaryparse_depth)) {
+        ParseBuffer::clear();
+        return;
+    }
+
+    ParseBuffer::clear();
+    PrintManager::print("undefined\n\r");
 }
